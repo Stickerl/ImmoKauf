@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS precalculated_price_trend;
+
 CREATE TABLE precalculated_price_trend SELECT 
 	
     pt_2018.city_name AS City_Name,
