@@ -67,7 +67,8 @@ WHERE pt_2018.year = 2018
   AND pt_2024.price > 1
 LIMIT 30000;
 
-SELECT *, ROUND((2019_Diff_Percent + 2020_Diff_Percent + 2021_Diff_Percent + 2022_Diff_Percent + 2023_Diff_Percent + 2024_Diff_Percent)/5, 4) AS MeanDiff FROM immobilienkauf.precalculated_price_trend ORDER BY MeanDiff DESC
+CREATE TEMPORARY TABLE TempTable SELECT *, ROUND((2019_Diff_Percent + 2020_Diff_Percent + 2021_Diff_Percent + 2022_Diff_Percent + 2023_Diff_Percent + 2024_Diff_Percent)/5, 4) AS MeanDiff FROM immobilienkauf.precalculated_price_trend ORDER BY MeanDiff DESC;
+SELECT *, (2019_Diff_Percent - MeanDiff) AS 2019_Deviation FROM TempTable;
 
    
 
