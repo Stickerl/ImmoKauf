@@ -1,4 +1,4 @@
-SELECT 
+CREATE TABLE precalculated_price_trend SELECT 
 	
     pt_2018.city_name AS City_Name,
     pt_2018.year AS 2018_Year,
@@ -45,11 +45,8 @@ SELECT
     pt_2024.price AS 2024_price,
     pt_2024.price_change AS 2024_price_change,
     (pt_2024.price - pt_2023.price) AS 2024_Price_Difference,
-	ROUND(((pt_2024.price - pt_2023.price) / pt_2023.price) * 100, 2) AS Price_PTG_Difference /*,
+	ROUND(((pt_2024.price - pt_2023.price) / pt_2023.price) * 100, 2) AS Price_PTG_Difference 
     
-Mittelwertberechnung: Funktioniert aktuell noch nicht
-    Round ( ((2019_Price_Difference + 2020_Price_Difference + 2021_Price_Difference +2022_Price_Difference +2023_Price_Difference +2024_Price_Difference) /5, 2 )) AS Mittelwert_Pricedifferenz
-*/
 
 FROM immobilienkauf.price_trend_per_city AS pt_2018
 JOIN immobilienkauf.price_trend_per_city AS pt_2019 
