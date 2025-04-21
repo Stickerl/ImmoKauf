@@ -45,9 +45,9 @@ SELECT
     pt_2024.price AS 2024_price,
     pt_2024.price_change AS 2024_price_change,
     (pt_2024.price - pt_2023.price) AS 2024_Price_Difference,
-	ROUND(((pt_2024.price - pt_2023.price) / pt_2023.price) * 100, 2) AS Price_PTG_Difference,
+	ROUND(((pt_2024.price - pt_2023.price) / pt_2023.price) * 100, 2) AS Price_PTG_Difference /*,
     
-/* Mittelwertberechnung: Funktioniert aktuell noch nicht
+Mittelwertberechnung: Funktioniert aktuell noch nicht
     Round ( ((2019_Price_Difference + 2020_Price_Difference + 2021_Price_Difference +2022_Price_Difference +2023_Price_Difference +2024_Price_Difference) /5, 2 )) AS Mittelwert_Pricedifferenz
 */
 
