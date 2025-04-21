@@ -10,38 +10,38 @@ CREATE TABLE precalculated_price_trend SELECT
     pt_2019.year AS 2019_Year,
     pt_2019.price AS 2019_Price,
 	(pt_2019.price - pt_2018.price) AS 2019_Diff,
-	ROUND(((pt_2019.price - pt_2018.price) / pt_2018.price) * 100, 2) AS 2019_Diff_Percent,
+	(((pt_2019.price - pt_2018.price) / pt_2018.price) * 100) AS 2019_Diff_Percent,
 
 	/*	pt_2020.city_name AS 2020_City_Name,*/
     pt_2020.year AS 2020_Year,
     pt_2020.price AS 2020_Price,
 	(pt_2020.price - pt_2019.price) AS 2020_Diff,
-	ROUND(((pt_2020.price - pt_2019.price) / pt_2019.price) * 100, 2) AS 2020_Diff_Percent,
+	(((pt_2020.price - pt_2019.price) / pt_2019.price) * 100) AS 2020_Diff_Percent,
     
    /*	 pt_2021.city_name AS 2021_City_Name, */
     pt_2021.year AS 2021_Year,
     pt_2021.price AS 2021_Price,
     pt_2021.price_change AS 2021_Price_Change,
 	(pt_2021.price - pt_2020.price) AS 2021_Diff,
-	ROUND(((pt_2021.price - pt_2020.price) / pt_2020.price) * 100, 2) AS 2021_Diff_Percent,
+	(((pt_2021.price - pt_2020.price) / pt_2020.price) * 100) AS 2021_Diff_Percent,
     
 	/*	pt_2022.city_name AS 2022_City_Name, */
     pt_2022.year AS 2022_Year,
     pt_2022.price AS 2022_Price,
 	(pt_2022.price - pt_2021.price) AS 2022_Diff,
-	ROUND(((pt_2022.price - pt_2021.price) / pt_2021.price) * 100, 2) AS 2022_Diff_Percent,
+	(((pt_2022.price - pt_2021.price) / pt_2021.price) * 100) AS 2022_Diff_Percent,
     
 	/*	pt_2023.city_name AS 2023_City_Name, */
     pt_2023.year AS 2023_Year,
     pt_2023.price AS 2023_Price,
 	(pt_2023.price - pt_2022.price) AS 2023_Diff,
-	ROUND(((pt_2023.price - pt_2022.price) / pt_2022.price) * 100, 2) AS 2023_Diff_Percent,
+	(((pt_2023.price - pt_2022.price) / pt_2022.price) * 100) AS 2023_Diff_Percent,
     
     /*	pt_2024.city_name AS 2024_City_Name, */
     pt_2024.year AS 2024_Year,
     pt_2024.price AS 2024_price,
     (pt_2024.price - pt_2023.price) AS 2024_Diff,
-	ROUND(((pt_2024.price - pt_2023.price) / pt_2023.price) * 100, 2) AS 2024_Diff_Percent
+	(((pt_2024.price - pt_2023.price) / pt_2023.price) * 100) AS 2024_Diff_Percent
 
 FROM immobilienkauf.price_trend_per_city AS pt_2018 
 JOIN immobilienkauf.price_trend_per_city AS pt_2019 
@@ -67,51 +67,7 @@ WHERE pt_2018.year = 2018
   AND pt_2024.price > 1
 LIMIT 30000;
 
+SELECT *, ROUND((2019_Diff_Percent + 2020_Diff_Percent + 2021_Diff_Percent + 2022_Diff_Percent + 2023_Diff_Percent + 2024_Diff_Percent)/5, 4) AS MeanDiff FROM immobilienkauf.precalculated_price_trend ORDER BY MeanDiff DESC
 
+   
 
-SELECT 
-	
-    pt_2018.city_name AS City_Name,
-    pt_2018.year AS 2018_Year,
-    pt_2018.price AS 2018_Price,
-    
-    /*	pt_2019.city_name AS 2019_City_Name, */
-    pt_2019.year AS 2019_Year,
-    pt_2019.price AS 2019_Price,
-	pt_2019.2019_Diff AS 2019_Diff,
-    pt_2019.2019_Diff_Percent AS 2019_Diff_Percent
-
-	/*	pt_2020.city_name AS 2020_City_Name,*/
-    pt_2020.year AS 2020_Year,
-    pt_2020.price AS 2020_Price,
-    pt_2020.2020_Diff AS 2020_Diff,
-    pt_2020.2020_Diff_Percent AS 2020_Diff_Percent
-    
-   /*	 pt_2021.city_name AS 2021_City_Name, */
-    pt_2021.year AS 2021_Year,
-    pt_2021.price AS 2021_Price,
-    pt_2021.price_change AS 2021_Price_Change,
-    pt_2021.2021_Diff AS 2021_Diff,
-    pt_2021.2021_Diff_Percent AS 2021_Diff_Percent
-    
-	/*	pt_2022.city_name AS 2022_City_Name, */
-    pt_2022.year AS 2022_Year,
-    pt_2022.price AS 2022_Price,
-    pt_2022.2022_Diff AS 2022_Diff,
-    pt_2022.2022_Diff_Percent AS 2022_Diff_Percent
-    
-	/*	pt_2023.city_name AS 2023_City_Name, */
-    pt_2023.year AS 2023_Year,
-    pt_2023.price AS 2023_Price,
-    pt_2023.2023_Diff AS 2023_Diff,
-    pt_2023.2023_Diff_Percent AS 2023_Diff_Percent
-    
-    /*	pt_2024.city_name AS 2024_City_Name, */
-    pt_2024.year AS 2024_Year,
-    pt_2024.price AS 2024_price,
-    pt_2024.2024_Diff AS 2024_Diff,
-    pt_2024.2024_Diff_Percent AS 2024_Diff_Percent
-
-    Round ( ((2019_Diff_Percent + 2020_Diff_Percent + 2021_Diff_Percent +2022_Diff_Percent +2023_Diff_Percent +2024_Diff_Percent) /5, 2 )) AS Mean_Diff_Percent
-
-FROM immobilienkauf.precalculated_price_trend AS precalculated_price_trend 
