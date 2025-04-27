@@ -1,3 +1,4 @@
+USE immobilienkauf;
 DROP TABLE IF EXISTS precalculated_price_trend;
 
 CREATE TABLE precalculated_price_trend SELECT 
