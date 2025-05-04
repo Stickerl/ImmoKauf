@@ -4,9 +4,10 @@ CREATE TABLE  immobilienkauf.copy_price_trend_per_city_w_calculations AS
 SELECT * FROM immobilienkauf.price_trend_per_city;
 
 ALTER TABLE immobilienkauf.copy_price_trend_per_city_w_calculations
-ADD COLUMN avg_percent_change DECIMAL(10, 8);
-ALTER TABLE immobilienkauf.copy_price_trend_per_city_w_calculations
-ADD COLUMN diff_from_avg DECIMAL(10, 8);
+ADD COLUMN avg_percent_change DECIMAL(10, 8), 
+ADD COLUMN diff_from_avg DECIMAL(10, 8) ,
+ADD COLUMN max_diff_from_avg DECIMAL(10, 8),
+ADD COLUMN min_diff_from_avg DECIMAL(10, 8);
 
 SET SQL_SAFE_UPDATES = 0;
 
@@ -26,6 +27,15 @@ WHERE c.city_name IS NOT NULL;
 
 UPDATE immobilienkauf.copy_price_trend_per_city_w_calculations
 SET diff_from_avg = price_change - avg_percent_change;
+
+UPDATE immobilienkauf.copy_price_trend_per_city_w_calculations t
+JOIN (
+    SELECT city_name, MAX(diff_from_avg) AS max_val, MIN(diff_from_avg) AS min_val
+    FROM immobilienkauf.copy_price_trend_per_city_w_calculations
+    GROUP BY city_name
+) AS sub ON t.city_name = sub.city_name
+SET t.max_diff_from_avg = sub.max_val,
+ t.min_diff_from_avg = sub.min_val;
 
 SET SQL_SAFE_UPDATES = 1;
 
