@@ -1,7 +1,18 @@
+USE immobilienkauf;
 DROP TABLE IF EXISTS immobilienkauf.copy_price_trend_per_city_w_calculations ; 
+CREATE TABLE immobilienkauf.copy_price_trend_per_city_w_calculations AS
+SELECT
+    curr.city_name,
+    curr.year,
+    curr.price,
+    curr.unit,
+    ROUND(((curr.price - prev.price) / prev.price) * 100, 2) AS price_change
+   
+FROM immobilienkauf.price_trend_per_city AS curr
+LEFT JOIN immobilienkauf.price_trend_per_city AS prev
+    ON curr.city_name = prev.city_name
+    AND curr.year = prev.year + 1;
 
-CREATE TABLE  immobilienkauf.copy_price_trend_per_city_w_calculations AS
-SELECT * FROM immobilienkauf.price_trend_per_city;
 
 ALTER TABLE immobilienkauf.copy_price_trend_per_city_w_calculations
 ADD COLUMN avg_percent_change DECIMAL(10, 8), 
@@ -10,6 +21,13 @@ ADD COLUMN max_diff_from_avg DECIMAL(10, 8),
 ADD COLUMN min_diff_from_avg DECIMAL(10, 8);
 
 SET SQL_SAFE_UPDATES = 0;
+/*
+UPDATE immobilienkauf.copy_price_trend_per_city_w_calculations AS curr
+JOIN immobilienkauf.copy_price_trend_per_city_w_calculations AS prev
+  ON curr.city_name = prev.city_name
+  AND curr.year = prev.year + 1
+SET curr.price_change = ROUND(((curr.price - prev.price) / prev.price) * 100, 2);
+*/
 
 UPDATE immobilienkauf.copy_price_trend_per_city_w_calculations c
 JOIN (
