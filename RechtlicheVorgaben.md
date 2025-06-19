@@ -2,8 +2,8 @@
 ## Energieeffizinz:
 EU-Vorgabe: Wohngebäude müssen bis 2030 mindestens klasse F und bis 2033 Klasse E erreichen.
 
-| Energieeffizienzklasse	| Endenergie (Kilowattstunden pro Quadratmeter Gebäudenutzfläche und Jahr) |
-| -|-|
+| Energieeffizienzklasse | Endenergie (Kilowattstunden pro Quadratmeter Gebäudenutzfläche und Jahr) |
+|-|-|
 | A+ |≤ 30 |
 | A |≤ 50 |
 | B |≤ 75 |
@@ -13,3 +13,7 @@ EU-Vorgabe: Wohngebäude müssen bis 2030 mindestens klasse F und bis 2033 Klass
 | F |≤ 200 |
 | G |≤ 250 |
 | H |> 250 |
+
+GEG Sanierungspflicht:
+- Heizungs und warmwasser rohre müssen gedemmd werden.
+- Obeste Geschossdecke muss gedemmd werden.
