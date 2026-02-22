@@ -1,17 +1,13 @@
-#import datetime
 import datetime
 
 def date_in_years(years):
     return datetime.datetime(datetime.datetime.now().year + years, datetime.datetime.now().month, datetime.datetime.now().day)
 
-class Credit:
-    volume = 0.0
-    interest_rate = 0.0
-    redemption_rate = 0.0
-    annual_credit_rate = 0.0
-    start_date = 0
-    end_date = 0
+def compound_interest(start_value, rate, iterations):
+    return start_value * pow((1+rate/100), iterations)
 
+
+class Credit:
     def __init__(self, initial_volume, interest, redemption, date = datetime.datetime.now()):
         self.volume = initial_volume
         self.interest_rate = interest
@@ -46,35 +42,60 @@ class Credit:
     def interest(self, date):
         return self.rest_volume(date) * self.interest_rate / 100
     
-    def serialise_stats(self, date=None):
-        year = self.start_date
-        if date:
-            year = date
-        return f"Credit stats for year {year}:\nRest volume: {self.rest_volume(year)}\nAnnual redemption: {self.redemption(year)}\nMonthly redemption: {self.redemption(year)/12}\nAnnual interest: {self.interest(year)}\nMonthly interest: {self.interest(year)/12}\n"
+    def serialise_stats(self, date_in=None):
+        date = date_in if date_in else self.start_date
+        return f"Credit stats for year {date}:\nRest volume: {self.rest_volume(date)}\nAnnual redemption: {self.redemption(date)}\nMonthly redemption: {self.redemption(date)/12}\nAnnual interest: {self.interest(date)}\nMonthly interest: {self.interest(date)/12}\n"
 
 class AcquisitionCosts:
-    purchase_price = 0.0
-    broker_percent = 0.0 # markler
-    notary_percent = 0.0 # notar
-    land_registry_percent = 0.0 # grundbuch eintrag
-    property_transfer_tax_percent = 0.0 # grunderwerbssteuer
+    def __init__(self, purchase_price, agent, notary, land_registry, property_transfer_tax):
+        self.purchase_price = purchase_price
+        self.agent_percent = agent # markler
+        self.notary_percent = notary # notar
+        self.land_registry_percent = land_registry # grundbuch eintrag
+        self.property_transfer_tax_percent = property_transfer_tax # grunderwerbssteuer
+        self.agent_abs = self.purchase_price * self.agent_percent / 100
+        self.notary_abs = self.purchase_price *  self.notary_percent / 100
+        self.land_registry_abs = self.purchase_price * self.land_registry_percent / 100
+        self.property_transfer_tax_abs = self.purchase_price * self.property_transfer_tax_percent / 100
 
+class RealEstate:
+    def __init__(self, name, address, price, expected_rate, living_space, cold_rent, warm_rent, rent_increase, cost_rate, date = datetime.datetime.now(), parking = 0):
+        self.name = name
+        self.address = address
+        self.purchase_price = price
+        self.purchase_date = date
+        self.living_space = living_space  # living space in square meters
+        self.initial_cold_rent = cold_rent
+        self.initial_warm_rent = warm_rent
+        self.annual_rent_increase = rent_increase
+        self.annual_cost_increase = cost_rate
+        self.parking = parking # number of parking places
+        self.annual_value_increase_rate = expected_rate
 
-class Immobilie:
-    name = ""
-    address = ""
-    buy_date = datetime.date.year
-    living_space = 0.0  # living space in square meters
-    parking = 0 # number of parking places
-    annual_value_increase_rate = 6.0
+    def value(self, date_in=None):
+        date = date_in if date_in else self.purchase_date
+        return compound_interest(self.purchase_price,self.annual_value_increase_rate,(date.year - self.purchase_date.year))
 
+    def cold_rent(self, date_in=None):
+        date = date_in if date_in else self.purchase_date
+        return compound_interest(self.initial_cold_rent, self.annual_rent_increase, (date.year - self.purchase_date.year))
+
+    def warm_rent(self, date_in=None):
+        date = date_in if date_in else self.purchase_date
+        return self.cold_rent(date) + compound_interest(self.initial_warm_rent - self.initial_cold_rent, self.annual_cost_increase, (date.year - self.purchase_date.year))
+
+    def serialize_stats(self, date):
+        return f"Value of {self.name} in year {date.year} is: {self.value(date)}\nCold rent: {self.cold_rent(date)}\nWarm rent: {self.warm_rent(date)}\n"
 
 def main():
     test_credit = Credit(94000, 4.3,3.0)
+    test_real_estate = RealEstate("Test Wohnung", "Test Straße 3", 188000, 6.0, 36.5, 600, 738, 5.0, 5.0)
     print(f"Credit end date {test_credit.end_date}")
     for i in range(20):
-        next_year = datetime.datetime(datetime.datetime.now().year + i, datetime.datetime.now().month, datetime.datetime.now().day)
-        print(test_credit.serialise_stats(next_year))
+        year = datetime.datetime(datetime.datetime.now().year + i, datetime.datetime.now().month, datetime.datetime.now().day)
+        print(test_credit.serialise_stats(year))
+        print(test_real_estate.serialize_stats(year))
+
 
 if __name__ == "__main__":
     main()
