@@ -1,6 +1,7 @@
 import datetime
 import json
 import argparse
+import matplotlib.pyplot as plt
 
 
 def date_in_years(years, date=datetime.datetime.now()):
@@ -353,10 +354,35 @@ def main():
 
     investment = InvestmentPrediction(config)
     print("Setup successful.")
-    now = datetime.datetime.now()
-    for i in range(21):
-        print(investment.serialize_stats(date_in_years(i, now)))
 
+    years = []
+    cashflows = []
+    capital_growth = []
+    now = datetime.datetime.now()
+    for i in range(50):
+        date = date_in_years(i, now)
+        years.append(date.year)
+        cashflows.append(investment.cashflow.post_tax_cash_flow(date))
+        capital_growth.append(investment.returns.capital_growth(date))
+        print(investment.serialize_stats(date))
+
+    # Plot
+    fig, ax1 = plt.subplots()
+
+    # First axis (cashflow)
+    ax1.plot(years, cashflows)
+    ax1.set_xlabel("Year")
+    ax1.set_ylabel("Post-tax cash flow (yearly)")
+
+    # Second axis (capital growth)
+    ax2 = ax1.twinx()
+    ax2.plot(years, capital_growth)
+    ax2.set_ylabel("Capital growth")
+
+    plt.title("Cash Flow and Capital Growth Over Time")
+    plt.grid()
+
+    plt.show()
 
 
 if __name__ == "__main__":
