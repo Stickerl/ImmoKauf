@@ -1,0 +1,43 @@
+{
+  "credit": {
+    "initial_volume": 94000,
+    "interest": 4.3,
+    "redemption": 3.0
+  },
+  "real_estate": {
+    "name": "Test Wohnung",
+    "address": "Test Straße 3",
+    "price": 188000,
+    "expected_rate": 6.0,
+    "living_space": 36.5,
+    "cold_rent": 600,
+    "warm_rent": 738,
+    "rent_increase": 5.0,
+    "cost_rate": 5.0,
+    "parking": 0
+  },
+  "reserves": {
+    "per_square_meter": 10,
+    "percent_of_rent": 3
+  },
+  "running_costs": {
+    "cottage_deduction_allocatable": 131,
+    "cottage_deduction_none_allocatable": 167,
+    "property_tax": 7,
+    "weg_reserve": 28
+  },
+  "acquisition_costs": {
+    "agent": 3.57,
+    "notary": 1.5,
+    "land_registry": 0.5,
+    "property_transfer_tax": 3.5
+  },
+  "deprecations": {
+    "afa_rate": 2.5,
+    "afa_percent": 75,
+    "time_frame": 40
+  },
+  "cashflow": {
+    "tax_rate": 42
+  }
+}

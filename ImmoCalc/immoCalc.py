@@ -1,14 +1,18 @@
 import datetime
+import json
+import argparse
 
-def date_in_years(years, date= datetime.datetime.now()):
+
+def date_in_years(years, date=datetime.datetime.now()):
     return date.replace(year=date.year + years)
 
+
 def compound_interest(start_value, rate, iterations):
-    return start_value * pow((1+rate/100), iterations)
+    return start_value * pow((1 + rate / 100), iterations)
 
 
 class Credit:
-    def __init__(self, initial_volume, interest, redemption, date = datetime.datetime.now()):
+    def __init__(self, initial_volume, interest, redemption, date=datetime.datetime.now()):
         self.volume = initial_volume
         self.interest_rate = interest
         self.redemption_rate = redemption
@@ -17,11 +21,14 @@ class Credit:
         self.calc_rate()
         cnt = 0
         while self.rest_volume(date_in_years(cnt)) > 0:
-            cnt+=1
+            cnt += 1
         self.end_date = date_in_years(cnt)
 
+    @classmethod
+    def from_config(cls, cfg, date):
+        return cls(cfg["initial_volume"], cfg["interest"], cfg["redemption"], date)
+
     def calc_rate(self):
-        # credit rate is calculated on an annual basis but payed monthly
         self.annual_credit_rate = (self.volume * (self.interest_rate + self.redemption_rate) / 100)
 
     def rest_volume(self, date_in=None):
@@ -42,14 +49,13 @@ class Credit:
         redemption = self.annual_credit_rate - (self.rest_volume(date) * self.interest_rate / 100)
         return 0 if self.rest_volume(date) <= 0 else redemption
 
-
     def interest(self, date):
         interest = self.rest_volume(date) * self.interest_rate / 100
         return 0 if interest < 0 else interest
     
-    def serialise_stats(self, date_in=None):
+    def serialize_stats(self, date_in=None):
         date = date_in if date_in else self.start_date
-        return f"Credit stats for year {date}:\nRest volume: {self.rest_volume(date)}\nAnnual redemption: {self.redemption(date)}\nMonthly redemption: {self.redemption(date)/12}\nAnnual interest: {self.interest(date)}\nMonthly interest: {self.interest(date)/12}\n"
+        return f"\nCredit stats for year {date}:\nRest volume: {self.rest_volume(date)}\nAnnual redemption: {self.redemption(date)}\nMonthly redemption: {self.redemption(date)/12}\nAnnual interest: {self.interest(date)}\nMonthly interest: {self.interest(date)/12}\n"
 
 
 class AcquisitionCosts:
@@ -63,6 +69,16 @@ class AcquisitionCosts:
         self.notary_abs = self.purchase_price *  self.notary_percent / 100
         self.land_registry_abs = self.purchase_price * self.land_registry_percent / 100
         self.property_transfer_tax_abs = self.purchase_price * self.property_transfer_tax_percent / 100
+
+    @classmethod
+    def from_config(cls, cfg, purchase_price):
+        return cls(
+            purchase_price,
+            cfg["agent"],
+            cfg["notary"],
+            cfg["land_registry"],
+            cfg["property_transfer_tax"]
+        )
 
     def get_total_acquisition_costs(self):
         return self.purchase_price + self.agent_abs + self.notary_abs + self.land_registry_abs + self.property_transfer_tax_abs
@@ -82,6 +98,22 @@ class RealEstate:
         self.parking = parking # number of parking places
         self.annual_value_increase_rate = expected_rate
 
+    @classmethod
+    def from_config(cls, cfg, date):
+        return cls(
+            cfg["name"],
+            cfg["address"],
+            cfg["price"],
+            cfg["expected_rate"],
+            cfg["living_space"],
+            cfg["cold_rent"],
+            cfg["warm_rent"],
+            cfg["rent_increase"],
+            cfg["cost_rate"],
+            date,
+            cfg.get("parking", 0)
+        )
+
     def value(self, date_in=None):
         # This returns the value at start of the year. The excel tool uses end of year / start of next year
         return compound_interest(self.purchase_price,self.annual_value_increase_rate, self.get_ownership_years(date_in))
@@ -93,7 +125,7 @@ class RealEstate:
         return self.cold_rent(date_in) + compound_interest(self.initial_warm_rent - self.initial_cold_rent, self.annual_cost_increase, self.get_ownership_years(date_in))
 
     def serialize_stats(self, date):
-        return f"Value of {self.name} in year {date.year} is: {self.value(date)}\nCold rent: {self.cold_rent(date)}\nWarm rent: {self.warm_rent(date)}\n"
+        return f"\nValue of {self.name} in year {date.year} is: {self.value(date)}\nCold rent: {self.cold_rent(date)}\nWarm rent: {self.warm_rent(date)}\n"
 
     def get_living_space(self):
         return self.living_space
@@ -122,6 +154,16 @@ class Deprecations:
         self.annual_afa = self.afa_capital * self.afa_rate / 100
         self.end_date = date_in_years(time_frame, start_date)
 
+    @classmethod
+    def from_config(cls, cfg, acquisition_costs, date):
+        return cls(
+            acquisition_costs.get_total_acquisition_costs(),
+            cfg["afa_rate"],
+            cfg["afa_percent"],
+            date,
+            cfg.get("time_frame", 40)
+        )
+
     def linear_per_year(self, date_in=None):
         if date_in:
             if date_in.year >= self.end_date.year:
@@ -134,6 +176,10 @@ class Reserves:
         self.per_square_meter = per_square_meter
         self.percent_of_rent = percent_of_rent
         self.real_estate = real_estate
+
+    @classmethod
+    def from_config(cls, cfg, real_estate):
+        return cls(cfg["per_square_meter"], cfg["percent_of_rent"], real_estate)
 
     def reserve_at_year(self, date_in=None):
         private_reserve = compound_interest(self.real_estate.get_living_space() * self.per_square_meter / 12, self.real_estate.get_annual_cost_increase(), self.real_estate.get_ownership_years(date_in))
@@ -152,7 +198,7 @@ class Reserves:
         return self.real_estate.warm_rent(date_in) * self.percent_of_rent / 100
 
     def serialize_stats(self, date):
-        return f"Reserve in year {date.year} is: {self.reserve_at_year(date)}\nAccumulated reserve in year {date.year}: {self.reserve_accumulated(date)}\nExpected rent loss in year {date.year}: {self.expected_rent_loss(date)}\n"
+        return f"\nReserve in year {date.year} is: {self.reserve_at_year(date)}\nAccumulated reserve in year {date.year}: {self.reserve_accumulated(date)}\nExpected rent loss in year {date.year}: {self.expected_rent_loss(date)}\n"
 
 
 class RunningCosts:
@@ -162,6 +208,16 @@ class RunningCosts:
         self.property_tax = property_tax # Grundsteuer
         self.weg_reserve = weg_reserve
         self.real_estate  = real_estate
+
+    @classmethod
+    def from_config(cls, cfg, real_estate):
+        return cls(
+            cfg["cottage_deduction_allocatable"],
+            cfg["cottage_deduction_none_allocatable"],
+            cfg["property_tax"],
+            cfg["weg_reserve"],
+            real_estate
+        )
 
     def allocatable(self, date_in=None):
         # Note: The excel tool applies compound interest to property_tax which we think is wrong as the property tax is calculated based on square meters and a fixed percentage
@@ -178,7 +234,7 @@ class RunningCosts:
         return compound_interest(self.cottage_deduction_allocatable + self.cottage_deduction_none_allocatable, self.real_estate.get_annual_cost_increase(), self.real_estate.get_ownership_years(date_in))
 
     def serialize_stats(self, reserve: Reserves, date):
-        return f"RunningCosts in year {date.year} is:\nAllocatable: {self.allocatable(date)}\nNon allocatable: {self.none_allocatable(reserve, date)}\nSum: {self.total(reserve, date)}\nCottage deduction: {self.get_cottage_deduction_sum(date)}\nToDo: RunningCosts::allocatable still calculates according to the excel sheet wich is flawed!\n"
+        return f"\nRunningCosts in year {date.year} is:\nAllocatable: {self.allocatable(date)}\nNon allocatable: {self.none_allocatable(reserve, date)}\nSum: {self.total(reserve, date)}\nCottage deduction: {self.get_cottage_deduction_sum(date)}\nToDo: RunningCosts::allocatable still calculates according to the excel sheet wich is flawed!\n"
 
 
 class Cashflow:
@@ -189,6 +245,17 @@ class Cashflow:
         self.reserves = reserves
         self.deprecations = deprecations
         self.tax_rate = tax_rate
+
+    @classmethod
+    def from_config(cls, cfg, real_estate, credit, running_cost, reserves, deprecations):
+        return cls(
+            real_estate,
+            credit,
+            running_cost,
+            reserves,
+            deprecations,
+            cfg.get("tax_rate", 42)
+        )
 
     def taxed_cash_flow(self, date_in=None):
         warm_rent = self.real_estate.warm_rent(date_in)
@@ -219,7 +286,7 @@ class Cashflow:
         return acc_cash_flow
 
     def serialize_stats(self, date):
-        return f"Cashflow in year {date.year} is:\nOperative: {self.operative_cash_flow(date)}\nTaxed cash flow: {self.taxed_cash_flow(date)}\nTaxes: {self.taxes(date)}\nPost taxes: {self.post_tax_cash_flow(date)}\nAccumulated cash flow: {self.accumulated_cashflow(self.real_estate.purchase_date, date)}\n"
+        return f"\nCashflow in year {date.year} is:\nOperative: {self.operative_cash_flow(date)}\nTaxed cash flow: {self.taxed_cash_flow(date)}\nTaxes: {self.taxes(date)}\nPost taxes: {self.post_tax_cash_flow(date)}\nAccumulated cash flow: {self.accumulated_cashflow(self.real_estate.purchase_date, date)}\n"
 
  #ToDo: calculation of retuns
 class Returns:
@@ -230,6 +297,10 @@ class Returns:
         self.credit = credit
         self.equity_capital = self.acquisition_cost.get_total_acquisition_costs() - self.credit.rest_volume(None)  # eigenkapital
 
+    @classmethod
+    def from_dependencies(cls, acquisition_cost, real_estate, cash_flow, credit):
+        return cls(acquisition_cost, real_estate, cash_flow, credit)
+
     def capital_growth(self, date_in=None):
         date = date_in if date_in else self.real_estate.purchase_date
         acc_cash_flow = self.cash_flow.accumulated_cashflow(self.real_estate.purchase_date, date)
@@ -238,28 +309,54 @@ class Returns:
         return real_estate_value - rest_credit - self.equity_capital - acc_cash_flow
 
     def serialize_stats(self, date):
-        return f"Capital growth in year {date.year} is: {self.capital_growth(date)}\n"
+        return f"\nCapital growth in year {date.year} is: {self.capital_growth(date)}\n"
+
+class InvestmentPrediction:
+    def __init__(self, config):
+        now = datetime.datetime.now()
+
+        self.real_estate = RealEstate.from_config(config["real_estate"], now)
+        self.credit = Credit.from_config(config["credit"], now)
+        self.acquisition_costs = AcquisitionCosts.from_config(
+            config["acquisition_costs"],
+            self.real_estate.purchase_price
+        )
+        self.reserves = Reserves.from_config(config["reserves"], self.real_estate)
+        self.running_costs = RunningCosts.from_config(config["running_costs"], self.real_estate)
+        self.deprecations = Deprecations.from_config(config["deprecations"], self.acquisition_costs, now)
+        self.cashflow = Cashflow.from_config(
+            config["cashflow"],
+            self.real_estate,
+            self.credit,
+            self.running_costs,
+            self.reserves,
+            self.deprecations
+        )
+        self.returns = Returns.from_dependencies(
+            self.acquisition_costs,
+            self.real_estate,
+            self.cashflow,
+            self.credit
+        )
+        
+    def serialize_stats(self, date_in=None):
+        return self.credit.serialize_stats(date_in) + self.real_estate.serialize_stats(date_in) + self.reserves.serialize_stats(date_in) + self.running_costs.serialize_stats(self.reserves, date_in) + self.cashflow.serialize_stats(date_in) + self.returns.serialize_stats(date_in)
+
 
 def main():
-    test_credit = Credit(94000, 4.3,3.0)
-    test_real_estate = RealEstate("Test Wohnung", "Test Straße 3", 188000, 6.0, 36.5, 600, 738, 5.0, 5.0)
-    test_reserve = Reserves(10, 3, test_real_estate)
-    test_running_cost =  RunningCosts(131, 167, 7, 28, test_real_estate)
-    test_acquisition_cost = AcquisitionCosts(test_real_estate.purchase_price,3.57, 1.5,0.5,3.5)
-    test_deprecations = Deprecations(test_acquisition_cost.get_total_acquisition_costs(), 2.5, 75, test_real_estate.purchase_date)
-    test_cash_flow = Cashflow(test_real_estate, test_credit, test_running_cost, test_reserve, test_deprecations)
-    test_returns = Returns(test_acquisition_cost, test_real_estate,test_cash_flow, test_credit)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("config")
+    args = parser.parse_args()
 
-    print(f"Credit end date {test_credit.end_date}")
+    with open(args.config) as f:
+        config = json.load(f)
+
+    investment = InvestmentPrediction(config)
+    print("Setup successful.")
+    now = datetime.datetime.now()
     for i in range(21):
-        year = datetime.datetime(datetime.datetime.now().year + i, datetime.datetime.now().month, datetime.datetime.now().day)
-        print(test_credit.serialise_stats(year))
-        print(test_real_estate.serialize_stats(year))
-        print(test_reserve.serialize_stats(year))
-        print(test_running_cost.serialize_stats(test_reserve, year))
-        print(test_cash_flow.serialize_stats(year))
-        print(test_returns.serialize_stats(year))
-        print("\n\n")
+        print(investment.serialize_stats(date_in_years(i, now)))
+
 
 
 if __name__ == "__main__":
