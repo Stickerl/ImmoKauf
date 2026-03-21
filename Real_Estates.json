@@ -1,43 +1,105 @@
 {
-  "credit": {
-    "initial_volume": 94000,
-    "interest": 4.3,
-    "redemption": 3.0
+  "assumptions": {
+    "scenarios": {
+      "worst": {
+        "cost_rate": 6.0,
+        "rent_increase": 2.0,
+        "expected_rate": 2.0
+      },
+      "expected": {
+        "cost_rate": 5.0,
+        "rent_increase": 5.0,
+        "expected_rate": 6.0
+      },
+      "best": {
+        "cost_rate": 3.0,
+        "rent_increase": 7.0,
+        "expected_rate": 8.0
+      }
+    }
   },
-  "real_estate": {
-    "name": "Test Wohnung",
-    "address": "Test Straße 3",
-    "price": 188000,
-    "expected_rate": 6.0,
-    "living_space": 36.5,
-    "cold_rent": 600,
-    "warm_rent": 738,
-    "rent_increase": 5.0,
-    "cost_rate": 5.0,
-    "parking": 0
-  },
-  "reserves": {
-    "per_square_meter": 10,
-    "percent_of_rent": 3
-  },
-  "running_costs": {
-    "cottage_deduction_allocatable": 131,
-    "cottage_deduction_none_allocatable": 167,
-    "property_tax": 7,
-    "weg_reserve": 28
-  },
-  "acquisition_costs": {
-    "agent": 3.57,
-    "notary": 1.5,
-    "land_registry": 0.5,
-    "property_transfer_tax": 3.5
-  },
-  "deprecations": {
-    "afa_rate": 2.5,
-    "afa_percent": 75,
-    "time_frame": 40
-  },
-  "cashflow": {
-    "tax_rate": 42
-  }
+
+  "investments": [
+    {
+      "real_estate": {
+        "name": "Test Wohnung 1",
+        "address": "Test Straße 3",
+        "price": 188000,
+        "living_space": 36.5,
+        "cold_rent": 600,
+        "warm_rent": 738,
+        "parking": 0
+      },
+      "credit": {
+        "initial_volume": 94000,
+        "interest": 4.3,
+        "redemption": 3.0
+      },
+      "reserves": {
+        "per_square_meter": 10,
+        "percent_of_rent": 3
+      },
+      "running_costs": {
+        "cottage_deduction_allocatable": 131,
+        "cottage_deduction_none_allocatable": 167,
+        "property_tax": 7,
+        "weg_reserve": 28
+      },
+      "acquisition_costs": {
+        "agent": 3.57,
+        "notary": 1.5,
+        "land_registry": 0.5,
+        "property_transfer_tax": 3.5
+      },
+      "deprecations": {
+        "afa_rate": 2.5,
+        "afa_percent": 75,
+        "time_frame": 40
+      },
+      "cashflow": {
+        "tax_rate": 42
+      }
+    },
+
+    {
+      "real_estate": {
+        "name": "Test Wohnung 2",
+        "address": "Another Street 10",
+        "price": 250000,
+        "living_space": 50,
+        "cold_rent": 800,
+        "warm_rent": 980,
+        "parking": 1
+      },
+      "credit": {
+        "initial_volume": 150000,
+        "interest": 3.8,
+        "redemption": 2.5
+      },
+      "reserves": {
+        "per_square_meter": 12,
+        "percent_of_rent": 4
+      },
+      "running_costs": {
+        "cottage_deduction_allocatable": 180,
+        "cottage_deduction_none_allocatable": 220,
+        "property_tax": 10,
+        "weg_reserve": 35
+      },
+      "acquisition_costs": {
+        "agent": 3.57,
+        "notary": 1.5,
+        "land_registry": 0.5,
+        "property_transfer_tax": 3.5
+      },
+      "deprecations": {
+        "afa_rate": 2.5,
+        "afa_percent": 75,
+        "time_frame": 40
+      },
+      "cashflow": {
+        "tax_rate": 42
+      }
+    }
+  ]
 }

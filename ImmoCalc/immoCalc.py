@@ -100,17 +100,18 @@ class RealEstate:
         self.annual_value_increase_rate = expected_rate
 
     @classmethod
-    def from_config(cls, cfg, date):
+    def from_config(cls, cfg, scenario, date):
+        # scenario is a dict with keys: cost_rate, rent_increase, expected_rate
         return cls(
             cfg["name"],
             cfg["address"],
             cfg["price"],
-            cfg["expected_rate"],
+            scenario["expected_rate"],
             cfg["living_space"],
             cfg["cold_rent"],
             cfg["warm_rent"],
-            cfg["rent_increase"],
-            cfg["cost_rate"],
+            scenario["rent_increase"],
+            scenario["cost_rate"],
             date,
             cfg.get("parking", 0)
         )
@@ -313,10 +314,10 @@ class Returns:
         return f"\nCapital growth in year {date.year} is: {self.capital_growth(date)}\n"
 
 class InvestmentPrediction:
-    def __init__(self, config):
+    def __init__(self, config, scenario):
         now = datetime.datetime.now()
 
-        self.real_estate = RealEstate.from_config(config["real_estate"], now)
+        self.real_estate = RealEstate.from_config(config["real_estate"], scenario, now)
         self.credit = Credit.from_config(config["credit"], now)
         self.acquisition_costs = AcquisitionCosts.from_config(
             config["acquisition_costs"],
@@ -339,7 +340,7 @@ class InvestmentPrediction:
             self.cashflow,
             self.credit
         )
-        
+
     def serialize_stats(self, date_in=None):
         return self.credit.serialize_stats(date_in) + self.real_estate.serialize_stats(date_in) + self.reserves.serialize_stats(date_in) + self.running_costs.serialize_stats(self.reserves, date_in) + self.cashflow.serialize_stats(date_in) + self.returns.serialize_stats(date_in)
 
@@ -347,41 +348,53 @@ class InvestmentPrediction:
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("config")
+    parser.add_argument("--scenario", choices=["worst", "expected", "best"], default="expected")
     args = parser.parse_args()
 
     with open(args.config) as f:
         config = json.load(f)
 
-    investment = InvestmentPrediction(config)
-    print("Setup successful.")
+    # Prepare scenarios
+    scenarios = config["assumptions"]["scenarios"]
+    scenario_names = ["worst", "expected", "best"]
 
-    years = []
-    cashflows = []
-    capital_growth = []
-    now = datetime.datetime.now()
-    for i in range(50):
-        date = date_in_years(i, now)
-        years.append(date.year)
-        cashflows.append(investment.cashflow.post_tax_cash_flow(date))
-        capital_growth.append(investment.returns.capital_growth(date))
-        print(investment.serialize_stats(date))
-
-    # Plot
     fig, ax1 = plt.subplots()
+    ax2 = ax1.twinx()
 
-    # First axis (cashflow)
-    ax1.plot(years, cashflows)
+    now = datetime.datetime.now()
+
+    for name in scenario_names:
+        scenario = scenarios[name]
+        investment = InvestmentPrediction(config["investments"][0], scenario)
+
+        years = []
+        cashflows = []
+        capital_growth = []
+
+        for i in range(50):
+            date = date_in_years(i, now)
+            years.append(date.year)
+            cashflows.append(investment.cashflow.post_tax_cash_flow(date))
+            capital_growth.append(investment.returns.capital_growth(date))
+            print(f"--- Scenario: {name} ---")
+            print(investment.serialize_stats(date))
+
+        # Plot scenario
+        ax1.plot(years, cashflows, label=f"Cashflow ({name})")
+        ax2.plot(years, capital_growth, label=f"Capital Growth ({name})", linestyle="--")
+
+    # Labels
     ax1.set_xlabel("Year")
     ax1.set_ylabel("Post-tax cash flow (yearly)")
-
-    # Second axis (capital growth)
-    ax2 = ax1.twinx()
-    ax2.plot(years, capital_growth)
     ax2.set_ylabel("Capital growth")
+    plt.title("Cash Flow and Capital Growth Over Time for All Scenarios")
 
-    plt.title("Cash Flow and Capital Growth Over Time")
+    # Legends
+    lines, labels = ax1.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax1.legend(lines + lines2, labels + labels2, loc="upper left")
+
     plt.grid()
-
     plt.show()
 
 
