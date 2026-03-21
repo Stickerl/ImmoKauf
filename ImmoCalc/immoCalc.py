@@ -24,7 +24,8 @@ class Credit:
         # credit rate is calculated on an annual basis but payed monthly
         self.annual_credit_rate = (self.volume * (self.interest_rate + self.redemption_rate) / 100)
 
-    def rest_volume(self, date):
+    def rest_volume(self, date_in):
+        date = date_in if date_in else self.start_date
         if date.year == self.start_date.year:
             return self.volume
 
@@ -36,11 +37,15 @@ class Credit:
             current_volume = current_volume - (self.annual_credit_rate - current_volume * self.interest_rate / 100)
         return current_volume
 
-    def redemption(self, date):
-        return self.annual_credit_rate - (self.rest_volume(date) * self.interest_rate / 100)
+    def redemption(self, date_in):
+        date = date_in if date_in else self.start_date
+        redemption = self.annual_credit_rate - (self.rest_volume(date) * self.interest_rate / 100)
+        return 0 if self.rest_volume(date) <= 0 else redemption
+
 
     def interest(self, date):
-        return self.rest_volume(date) * self.interest_rate / 100
+        interest = self.rest_volume(date) * self.interest_rate / 100
+        return 0 if interest < 0 else interest
     
     def serialise_stats(self, date_in=None):
         date = date_in if date_in else self.start_date
@@ -109,15 +114,17 @@ class RealEstate:
         return { self.calc_pre_tax_rent_return(date_in), (1 /self.calc_pre_tax_rent_return(date_in)), self.calc_post_tax_rent_return(running_costs, reserves, date_in)}
 
 
-#ToDo: impelementation not finished!
 class Deprecations:
-    def __init__(self, afa_capital, afa_rate, afa_percent):
+    def __init__(self, afa_capital, afa_rate, afa_percent, start_date, time_frame=40):
         self.afa_capital = afa_capital * afa_percent / 100
         self.afa_rate = afa_rate
         self.annual_afa = self.afa_capital * self.afa_rate / 100
+        self.end_date = date_in_years(time_frame, start_date)
 
-    def linear_per_year(self):
-        #ToDo: add check for date as afa stops after x years
+    def linear_per_year(self, date_in=None):
+        if date_in:
+            if date_in.year >= self.end_date.year:
+                return 0
         return self.afa_capital * self.afa_rate / 100
 
 
@@ -144,7 +151,7 @@ class Reserves:
         return self.real_estate.warm_rent(date_in) * self.percent_of_rent / 100
 
     def serialize_stats(self, date):
-        return f"Reserve in year {date.year} is: {self.reserve_at_year(date)}\nAccumulated reserve in year {date.year}: {self.reserve_accumulated(date)}\n"
+        return f"Reserve in year {date.year} is: {self.reserve_at_year(date)}\nAccumulated reserve in year {date.year}: {self.reserve_accumulated(date)}\nExpected rent loss in year {date.year}: {self.expected_rent_loss(date)}\n"
 
 
 class RunningCosts:
@@ -156,7 +163,9 @@ class RunningCosts:
         self.real_estate  = real_estate
 
     def allocatable(self, date_in=None):
-        return compound_interest(self.cottage_deduction_allocatable, self.real_estate.get_annual_cost_increase(), self.real_estate.get_ownership_years(date_in)) + self.property_tax
+        # Note: The excel tool applies compound interest to property_tax which we think is wrong as the property tax is calculated based on square meters and a fixed percentage
+        # return compound_interest(self.cottage_deduction_allocatable, self.real_estate.get_annual_cost_increase(), self.real_estate.get_ownership_years(date_in)) + self.property_tax
+        return compound_interest(self.cottage_deduction_allocatable + self.property_tax, self.real_estate.get_annual_cost_increase(), self.real_estate.get_ownership_years(date_in))
 
     def none_allocatable(self, reserve: Reserves, date_in=None):
         return compound_interest(self.cottage_deduction_none_allocatable, self.real_estate.get_annual_cost_increase(), self.real_estate.get_ownership_years(date_in)) + reserve.reserve_at_year(date_in)
@@ -168,7 +177,7 @@ class RunningCosts:
         return compound_interest(self.cottage_deduction_allocatable + self.cottage_deduction_none_allocatable, self.real_estate.get_annual_cost_increase(), self.real_estate.get_ownership_years(date_in))
 
     def serialize_stats(self, reserve: Reserves, date):
-        return f"RunningCosts in year {date.year} is:\nAllocatable: {self.allocatable(date)}\nNon allocatable: {self.none_allocatable(reserve, date)}\nCottage deduction: {self.get_cottage_deduction_sum(date)}\n"
+        return f"RunningCosts in year {date.year} is:\nAllocatable: {self.allocatable(date)}\nNon allocatable: {self.none_allocatable(reserve, date)}\nSum: {self.total(reserve, date)}\nCottage deduction: {self.get_cottage_deduction_sum(date)}\nToDo: RunningCosts::allocatable still calculates according to the excel sheet wich is flawed!\n"
 
 
 class Cashflow:
@@ -178,10 +187,16 @@ class Cashflow:
         self.running_cost = running_cost
         self.reserves = reserves
         self.deprecations = deprecations
-        self.tax_rate = 42
+        self.tax_rate = tax_rate
 
     def taxed_cash_flow(self, date_in=None):
-        return self.real_estate.warm_rent(date_in) - (self.running_cost.total(self.reserves, date_in) - self.reserves.reserve_at_year(date_in) + self.credit.interest(date_in) + self.deprecations.linear_per_year())
+        warm_rent = self.real_estate.warm_rent(date_in)
+        total_running_cost = self.running_cost.total(self.reserves, date_in)
+        reserves = self.reserves.reserve_at_year(date_in)
+        monthly_interest = self.credit.interest(date_in) / 12
+        monthly_deprecations = self.deprecations.linear_per_year(date_in)/12
+        result = warm_rent - (total_running_cost - reserves + monthly_interest + monthly_deprecations)
+        return result
 
     def taxes(self, date_in=None):
         return self.taxed_cash_flow(date_in) * self.tax_rate / 100
@@ -197,7 +212,7 @@ class Cashflow:
         return self.operative_cash_flow(date_in) - self.taxes(date_in)
 
     def serialize_stats(self, date):
-        return f"Cashflow in year {date.year} is:\nOperative: {self.operative_cash_flow(date)}\nTaxed: {self.taxed_cash_flow(date)}\nPost taxes: {self.post_tax_cash_flow(date)}\n"
+        return f"Cashflow in year {date.year} is:\nOperative: {self.operative_cash_flow(date)}\nTaxed cash flow: {self.taxed_cash_flow(date)}\nTaxes: {self.taxes(date)}\nPost taxes: {self.post_tax_cash_flow(date)}\n"
 
     #ToDo: calculation of retuns and capital growth
 
@@ -207,20 +222,19 @@ def main():
     test_real_estate = RealEstate("Test Wohnung", "Test Straße 3", 188000, 6.0, 36.5, 600, 738, 5.0, 5.0)
     test_reserve = Reserves(10, 3, test_real_estate)
     test_running_cost =  RunningCosts(131, 167, 7, 28, test_real_estate)
-    test_aquisition_cost = AcquisitionCosts(test_real_estate.purchase_price,3.57, 1.5,0.5,3.5)
-    test_deprecations = Deprecations(test_aquisition_cost.get_total_acquisition_costs(), 2.5, 75)
+    test_acquisition_cost = AcquisitionCosts(test_real_estate.purchase_price,3.57, 1.5,0.5,3.5)
+    test_deprecations = Deprecations(test_acquisition_cost.get_total_acquisition_costs(), 2.5, 75, test_real_estate.purchase_date)
     test_cash_flow = Cashflow(test_real_estate, test_credit, test_running_cost, test_reserve, test_deprecations)
 
     print(f"Credit end date {test_credit.end_date}")
-    for i in range(20):
+    for i in range(50):
         year = datetime.datetime(datetime.datetime.now().year + i, datetime.datetime.now().month, datetime.datetime.now().day)
-        #print(test_credit.serialise_stats(year))
-        #print(test_real_estate.serialize_stats(year))
-        #print(test_reserve.serialize_stats(year))
-        # ToDo: doublecheck the calculation
+        print(test_credit.serialise_stats(year))
+        print(test_real_estate.serialize_stats(year))
+        print(test_reserve.serialize_stats(year))
         print(test_running_cost.serialize_stats(test_reserve, year))
-        #ToDo: wrong results!
         print(test_cash_flow.serialize_stats(year))
+        print("\n\n")
 
 
 if __name__ == "__main__":
