@@ -24,7 +24,7 @@ class Credit:
         # credit rate is calculated on an annual basis but payed monthly
         self.annual_credit_rate = (self.volume * (self.interest_rate + self.redemption_rate) / 100)
 
-    def rest_volume(self, date_in):
+    def rest_volume(self, date_in=None):
         date = date_in if date_in else self.start_date
         if date.year == self.start_date.year:
             return self.volume
@@ -83,6 +83,7 @@ class RealEstate:
         self.annual_value_increase_rate = expected_rate
 
     def value(self, date_in=None):
+        # This returns the value at start of the year. The excel tool uses end of year / start of next year
         return compound_interest(self.purchase_price,self.annual_value_increase_rate, self.get_ownership_years(date_in))
 
     def cold_rent(self, date_in=None):
@@ -211,11 +212,33 @@ class Cashflow:
     def post_tax_cash_flow(self, date_in=None):
         return self.operative_cash_flow(date_in) - self.taxes(date_in)
 
+    def accumulated_cashflow(self, start_date, end_date):
+        acc_cash_flow = 12 * self.post_tax_cash_flow(start_date)
+        for i in range(end_date.year - start_date.year):
+            acc_cash_flow += 12 * self.post_tax_cash_flow(date_in_years(i+1, start_date))
+        return acc_cash_flow
+
     def serialize_stats(self, date):
-        return f"Cashflow in year {date.year} is:\nOperative: {self.operative_cash_flow(date)}\nTaxed cash flow: {self.taxed_cash_flow(date)}\nTaxes: {self.taxes(date)}\nPost taxes: {self.post_tax_cash_flow(date)}\n"
+        return f"Cashflow in year {date.year} is:\nOperative: {self.operative_cash_flow(date)}\nTaxed cash flow: {self.taxed_cash_flow(date)}\nTaxes: {self.taxes(date)}\nPost taxes: {self.post_tax_cash_flow(date)}\nAccumulated cash flow: {self.accumulated_cashflow(self.real_estate.purchase_date, date)}\n"
 
-    #ToDo: calculation of retuns and capital growth
+ #ToDo: calculation of retuns
+class Returns:
+    def __init__(self, acquisition_cost: AcquisitionCosts, real_estate: RealEstate, cash_flow: Cashflow, credit: Credit, ):
+        self.acquisition_cost = acquisition_cost
+        self.real_estate = real_estate
+        self.cash_flow = cash_flow
+        self.credit = credit
+        self.equity_capital = self.acquisition_cost.get_total_acquisition_costs() - self.credit.rest_volume(None)  # eigenkapital
 
+    def capital_growth(self, date_in=None):
+        date = date_in if date_in else self.real_estate.purchase_date
+        acc_cash_flow = self.cash_flow.accumulated_cashflow(self.real_estate.purchase_date, date)
+        rest_credit = self.credit.rest_volume(date)
+        real_estate_value = self.real_estate.value(date)
+        return real_estate_value - rest_credit - self.equity_capital - acc_cash_flow
+
+    def serialize_stats(self, date):
+        return f"Capital growth in year {date.year} is: {self.capital_growth(date)}\n"
 
 def main():
     test_credit = Credit(94000, 4.3,3.0)
@@ -225,15 +248,17 @@ def main():
     test_acquisition_cost = AcquisitionCosts(test_real_estate.purchase_price,3.57, 1.5,0.5,3.5)
     test_deprecations = Deprecations(test_acquisition_cost.get_total_acquisition_costs(), 2.5, 75, test_real_estate.purchase_date)
     test_cash_flow = Cashflow(test_real_estate, test_credit, test_running_cost, test_reserve, test_deprecations)
+    test_returns = Returns(test_acquisition_cost, test_real_estate,test_cash_flow, test_credit)
 
     print(f"Credit end date {test_credit.end_date}")
-    for i in range(50):
+    for i in range(21):
         year = datetime.datetime(datetime.datetime.now().year + i, datetime.datetime.now().month, datetime.datetime.now().day)
         print(test_credit.serialise_stats(year))
         print(test_real_estate.serialize_stats(year))
         print(test_reserve.serialize_stats(year))
         print(test_running_cost.serialize_stats(test_reserve, year))
         print(test_cash_flow.serialize_stats(year))
+        print(test_returns.serialize_stats(year))
         print("\n\n")
 
 
