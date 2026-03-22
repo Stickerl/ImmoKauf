@@ -408,9 +408,40 @@ class InvestmentPrediction:
     def serialize_stats(self, date_in=None):
         return self.credit.serialize_stats(date_in) + self.real_estate.serialize_stats(date_in) + self.reserves.serialize_stats(date_in) + self.running_costs.serialize_stats(self.reserves, date_in) + self.cashflow.serialize_stats(date_in) + self.returns.serialize_stats(date_in)
 
-
 def serialize_break_even(date):
     return f"{date.year if date else "Break even not reached!"}"
+
+class CornerCasePrediction:
+    def __init__(self, timeframe, investment_config, scenarios):
+        self.name = investment_config["real_estate"]["name"]
+        self.worst_case = InvestmentPrediction(investment_config, scenarios["worst"])
+        self.expected = InvestmentPrediction(investment_config, scenarios["expected"])
+        self.best_case = InvestmentPrediction(investment_config, scenarios["best"])
+        self.scenario_predictions = [[self.worst_case, "worst case"] , [self.expected, "expected"], [self.best_case, "best case"]]
+        self.end_date = date_in_years(timeframe)
+
+    def plot(self):
+        fig, ax1 = plt.subplots()
+        ax2 = ax1.twinx()
+        break_even_stats = []
+        print(f"Brake even statistics for {self.name}:\n")
+        for [predictor, name] in self.scenario_predictions:
+            break_even_stats.append(predictor.generate_prediction(ax1, ax2, self.end_date, name))
+        for i, break_even_values in enumerate(break_even_stats):
+            print(f"\nScenario: {self.scenario_predictions[i][1]}\nCashflow: {serialize_break_even(break_even_values[0])}\nAcc cashflow: {serialize_break_even(break_even_values[1])}\nCapital: {serialize_break_even(break_even_values[2])}")
+
+        # Labels
+        ax1.set_xlabel("Year")
+        ax1.set_ylabel("Post-tax cash flow (yearly)")
+        ax2.set_ylabel("Capital growth")
+        plt.title(f"Cash Flow and Capital Growth Over Time for {self.name}")
+
+        # Legend
+        lines, labels = ax1.get_legend_handles_labels()
+        lines2, labels2 = ax2.get_legend_handles_labels()
+        ax1.legend(lines + lines2, labels + labels2, loc="upper center", bbox_to_anchor=(0.5, -0.15), ncol=3)
+        plt.grid()
+        plt.tight_layout()
 
 def main():
     parser = argparse.ArgumentParser()
@@ -421,33 +452,14 @@ def main():
     with open(args.config) as f:
         config = json.load(f)
 
-
-    fig, ax1 = plt.subplots()
-    ax2 = ax1.twinx()
-
-    end_date = date_in_years(50)
-
     scenarios = config["assumptions"]["scenarios"]
-    scenario_names = ["worst", "expected", "best"]
 
-    for name in scenario_names:
-        scenario = scenarios[name]
-        investment = InvestmentPrediction(config["investments"][0], scenario)
-        break_even_stats = investment.generate_prediction(ax1, ax2, end_date, label=name)
-        print(f"Brake even statistics for {investment.get_name()}:\nCashflow: {serialize_break_even(break_even_stats[0])}\nAcc cashflow: {serialize_break_even(break_even_stats[1])}\nCapital: {serialize_break_even(break_even_stats[2])}")
+    investment_instances =[]
+    for investment_cfg in config["investments"]:
+        investment_instances.append(CornerCasePrediction(config["timeframe"], investment_cfg, scenarios))
 
-    # Labels
-    ax1.set_xlabel("Year")
-    ax1.set_ylabel("Post-tax cash flow (yearly)")
-    ax2.set_ylabel("Capital growth")
-    plt.title("Cash Flow and Capital Growth Over Time")
-
-    # Legend
-    lines, labels = ax1.get_legend_handles_labels()
-    lines2, labels2 = ax2.get_legend_handles_labels()
-    ax1.legend(lines + lines2, labels + labels2, loc="upper left")
-
-    plt.grid()
+    for investment in investment_instances:
+        investment.plot()
     plt.show()
 
 
