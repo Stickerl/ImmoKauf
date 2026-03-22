@@ -2,6 +2,7 @@ import datetime
 import json
 import argparse
 import matplotlib.pyplot as plt
+import numpy
 
 
 def date_in_years(years, date=datetime.datetime.now()):
@@ -308,7 +309,10 @@ class Returns:
         acc_cash_flow = self.cash_flow.accumulated_cashflow(self.real_estate.purchase_date, date)
         rest_credit = self.credit.rest_volume(date)
         real_estate_value = self.real_estate.value(date)
-        return real_estate_value - rest_credit - self.equity_capital - acc_cash_flow
+        return real_estate_value - rest_credit - self.get_equity_capital() - acc_cash_flow
+
+    def get_equity_capital(self):
+        return self.equity_capital
 
     def serialize_stats(self, date):
         return f"\nCapital growth in year {date.year} is: {self.capital_growth(date)}\n"
@@ -340,6 +344,59 @@ class InvestmentPrediction:
             self.cashflow,
             self.credit
         )
+        self.cashflow_break_even = None
+        self.acc_cashflow_break_even = None
+        self.capital_break_even = None
+
+    def get_name(self):
+        return self.real_estate.name
+
+    def generate_prediction(self, ax1, ax2, end_date, label=""):
+        start_date = self.real_estate.purchase_date
+        years = [date_in_years(i, start_date) for i in range(end_date.year - start_date.year)]
+        cashflows, self.cashflow_break_even, acc_cashflow, self.acc_cashflow_break_even = self.cashflow_prediction(end_date)
+        capital_growth, self.capital_break_even = self.capital_prediction(cashflows, end_date)
+
+        # Plot onto provided axes
+        ax1.plot(years, cashflows, label=f"Cashflow ({label})")
+        ax2.plot(years, capital_growth, linestyle="--", label=f"Capital Growth ({label})")
+        return self.cashflow_break_even, self.acc_cashflow_break_even, self.capital_break_even
+
+    def cashflow_prediction(self, end_date=None):
+        start_date = self.real_estate.purchase_date
+        if end_date is None:
+            end_date = start_date
+        cashflow = []
+        acc_cashflow = []
+        break_even_date = None
+        acc_break_even_date = None
+        for i in range(end_date.year - start_date.year):
+            date = date_in_years(i, start_date)
+            # cashflow and its break even date
+            cashflow.append(self.cashflow.post_tax_cash_flow(date))
+            if break_even_date is None and cashflow[i] > 0:
+                break_even_date = date
+            # accumulated cashflow and its break even date
+            acc_cashflow.append(cashflow[i] + (acc_cashflow[i-1] if i > 0 else 0))
+            if acc_break_even_date is None and acc_cashflow[i] > 0:
+                acc_break_even_date = date
+
+        return cashflow, break_even_date, acc_cashflow, acc_break_even_date
+
+    def capital_prediction(self, cashflow, end_date=None):
+        start_date = self.real_estate.purchase_date
+        if end_date is None:
+            end_date = start_date
+        relative_capital_growth = []
+        overall_capital_growth = []
+        break_even_date = None
+        for i in range(end_date.year - start_date.year):
+            date = date_in_years(i, start_date)
+            relative_capital_growth.append(self.returns.capital_growth(date))
+            overall_capital_growth.append(relative_capital_growth[i] - self.returns.get_equity_capital() + cashflow[i])
+            if break_even_date is None and overall_capital_growth[i] > 0:
+                break_even_date = date
+        return overall_capital_growth, break_even_date
 
     def serialize_stats(self, date_in=None):
         return self.credit.serialize_stats(date_in) + self.real_estate.serialize_stats(date_in) + self.reserves.serialize_stats(date_in) + self.running_costs.serialize_stats(self.reserves, date_in) + self.cashflow.serialize_stats(date_in) + self.returns.serialize_stats(date_in)
@@ -354,42 +411,32 @@ def main():
     with open(args.config) as f:
         config = json.load(f)
 
-    # Prepare scenarios
-    scenarios = config["assumptions"]["scenarios"]
-    scenario_names = ["worst", "expected", "best"]
 
     fig, ax1 = plt.subplots()
     ax2 = ax1.twinx()
 
-    now = datetime.datetime.now()
+    end_date = date_in_years(50)
 
-    for name in scenario_names:
-        scenario = scenarios[name]
-        investment = InvestmentPrediction(config["investments"][0], scenario)
+    scenarios = config["assumptions"]["scenarios"]
+    scenario_names = ["worst", "expected", "best"]
 
-        years = []
-        cashflows = []
-        capital_growth = []
+    scenario = scenarios[scenario_names[1]]
+    investment = InvestmentPrediction(config["investments"][0], scenario)
+    break_even_stats = investment.generate_prediction(ax1, ax2, end_date, label=scenario_names[1])
+    print(f"Brake even statistics for {investment.get_name()}:\nCashflow: {break_even_stats[0].year}\nAcc cashflow: {break_even_stats[1].year}\nCapital: {break_even_stats[2].year}")
 
-        for i in range(50):
-            date = date_in_years(i, now)
-            years.append(date.year)
-            cashflows.append(investment.cashflow.post_tax_cash_flow(date))
-            capital_growth.append(investment.returns.capital_growth(date))
-            print(f"--- Scenario: {name} ---")
-            print(investment.serialize_stats(date))
-
-        # Plot scenario
-        ax1.plot(years, cashflows, label=f"Cashflow ({name})")
-        ax2.plot(years, capital_growth, label=f"Capital Growth ({name})", linestyle="--")
+    #for name in scenario_names:
+    #    scenario = scenarios[name]
+    #    investment = InvestmentPrediction(config["investments"][0], scenario)
+    #    investment.generate_prediction(ax1, ax2, end_date, label=name)
 
     # Labels
     ax1.set_xlabel("Year")
     ax1.set_ylabel("Post-tax cash flow (yearly)")
     ax2.set_ylabel("Capital growth")
-    plt.title("Cash Flow and Capital Growth Over Time for All Scenarios")
+    plt.title("Cash Flow and Capital Growth Over Time")
 
-    # Legends
+    # Legend
     lines, labels = ax1.get_legend_handles_labels()
     lines2, labels2 = ax2.get_legend_handles_labels()
     ax1.legend(lines + lines2, labels + labels2, loc="upper left")
