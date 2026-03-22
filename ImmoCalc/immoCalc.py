@@ -2,7 +2,7 @@ import datetime
 import json
 import argparse
 import matplotlib.pyplot as plt
-import numpy
+import matplotlib.gridspec as gridspec
 
 
 def date_in_years(years, date=datetime.datetime.now()):
@@ -419,16 +419,13 @@ class CornerCasePrediction:
         self.best_case = InvestmentPrediction(investment_config, scenarios["best"])
         self.scenario_predictions = [[self.worst_case, "worst case"] , [self.expected, "expected"], [self.best_case, "best case"]]
         self.end_date = date_in_years(timeframe)
+        self.break_even_stats = []
 
     def plot(self):
         fig, ax1 = plt.subplots()
         ax2 = ax1.twinx()
-        break_even_stats = []
-        print(f"Brake even statistics for {self.name}:\n")
         for [predictor, name] in self.scenario_predictions:
-            break_even_stats.append(predictor.generate_prediction(ax1, ax2, self.end_date, name))
-        for i, break_even_values in enumerate(break_even_stats):
-            print(f"\nScenario: {self.scenario_predictions[i][1]}\nCashflow: {serialize_break_even(break_even_values[0])}\nAcc cashflow: {serialize_break_even(break_even_values[1])}\nCapital: {serialize_break_even(break_even_values[2])}")
+            self.break_even_stats.append(predictor.generate_prediction(ax1, ax2, self.end_date, name))
 
         # Labels
         ax1.set_xlabel("Year")
@@ -442,6 +439,47 @@ class CornerCasePrediction:
         ax1.legend(lines + lines2, labels + labels2, loc="upper center", bbox_to_anchor=(0.5, -0.15), ncol=3)
         plt.grid()
         plt.tight_layout()
+
+    def get_break_even_stats(self):
+        return self.break_even_stats
+
+
+def show_break_even_tables(investment_instances):
+    # Collect scenario names
+    scenario_names = ["worst case", "expected", "best case"]
+    investment_names = [inv.name for inv in investment_instances]
+
+    # Prepare data: each scenario as a dict of lists
+    tables_data = {scenario: [] for scenario in scenario_names}
+    for scenario_index, scenario in enumerate(scenario_names):
+        # For each break-even metric (cashflow, acc_cashflow, capital)
+        metrics = ["Cashflow", "Acc Cashflow", "Capital"]
+        scenario_values = []
+        for metric_index in range(3):
+            # Collect the metric for all investments for this scenario
+            row = [serialize_break_even(inv.break_even_stats[scenario_index][metric_index])
+                   for inv in investment_instances]
+            scenario_values.append(row)
+        tables_data[scenario] = scenario_values
+
+    # Create figure with subplots (1 row per scenario, table per subplot)
+    fig = plt.figure(constrained_layout=True, figsize=(2 + 2*len(investment_names), 2 + 2*len(scenario_names)))
+    spec = gridspec.GridSpec(ncols=1, nrows=len(scenario_names), figure=fig)
+
+    for i, scenario in enumerate(scenario_names):
+        ax = fig.add_subplot(spec[i, 0])
+        ax.axis('off')  # hide axes
+
+        # Build table with metrics as rows, investments as columns
+        table = ax.table(cellText=tables_data[scenario],
+                         rowLabels=["Cashflow", "Acc Cashflow", "Capital"],
+                         colLabels=investment_names,
+                         loc='center')
+        table.auto_set_font_size(False)
+        table.set_fontsize(10)
+        table.scale(1, 2)
+        ax.set_title(f"Break-even statistics: {scenario}", fontweight='bold')
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -460,6 +498,8 @@ def main():
 
     for investment in investment_instances:
         investment.plot()
+
+    show_break_even_tables(investment_instances)
     plt.show()
 
 

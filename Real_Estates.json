@@ -23,8 +23,8 @@
   "investments": [
     {
       "real_estate": {
-        "name": "Test Wohnung 1",
-        "address": "Test Straße 3",
+        "name": "Drentwettstraße",
+        "address": "Drentwettstraße",
         "price": 188000,
         "living_space": 36.5,
         "cold_rent": 600,
