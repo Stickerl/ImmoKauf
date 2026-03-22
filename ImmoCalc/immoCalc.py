@@ -359,6 +359,7 @@ class InvestmentPrediction:
 
         # Plot onto provided axes
         ax1.plot(years, cashflows, label=f"Cashflow ({label})")
+        ax1.plot(years, acc_cashflow, label=f"Accumulated cashflow ({label})")
         ax2.plot(years, capital_growth, linestyle="--", label=f"Capital Growth ({label})")
         return self.cashflow_break_even, self.acc_cashflow_break_even, self.capital_break_even
 
@@ -381,6 +382,12 @@ class InvestmentPrediction:
             if acc_break_even_date is None and acc_cashflow[i] > 0:
                 acc_break_even_date = date
 
+        if acc_cashflow[-1] < 0:
+            # it is possible that the accumulated cashflow peaks to > 0 and falls below 0 later. Calling that break even is misleading. It most likely occurs when the credit rest volume reaches 0.
+            acc_break_even_date = None
+        if cashflow[-1] < 0:
+            # if the final cash flow is < 0 we don't care for previous peaks > 0
+            break_even_date = None
         return cashflow, break_even_date, acc_cashflow, acc_break_even_date
 
     def capital_prediction(self, cashflow, end_date=None):
@@ -402,6 +409,9 @@ class InvestmentPrediction:
         return self.credit.serialize_stats(date_in) + self.real_estate.serialize_stats(date_in) + self.reserves.serialize_stats(date_in) + self.running_costs.serialize_stats(self.reserves, date_in) + self.cashflow.serialize_stats(date_in) + self.returns.serialize_stats(date_in)
 
 
+def serialize_break_even(date):
+    return f"{date.year if date else "Break even not reached!"}"
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("config")
@@ -420,15 +430,11 @@ def main():
     scenarios = config["assumptions"]["scenarios"]
     scenario_names = ["worst", "expected", "best"]
 
-    scenario = scenarios[scenario_names[1]]
-    investment = InvestmentPrediction(config["investments"][0], scenario)
-    break_even_stats = investment.generate_prediction(ax1, ax2, end_date, label=scenario_names[1])
-    print(f"Brake even statistics for {investment.get_name()}:\nCashflow: {break_even_stats[0].year}\nAcc cashflow: {break_even_stats[1].year}\nCapital: {break_even_stats[2].year}")
-
-    #for name in scenario_names:
-    #    scenario = scenarios[name]
-    #    investment = InvestmentPrediction(config["investments"][0], scenario)
-    #    investment.generate_prediction(ax1, ax2, end_date, label=name)
+    for name in scenario_names:
+        scenario = scenarios[name]
+        investment = InvestmentPrediction(config["investments"][0], scenario)
+        break_even_stats = investment.generate_prediction(ax1, ax2, end_date, label=name)
+        print(f"Brake even statistics for {investment.get_name()}:\nCashflow: {serialize_break_even(break_even_stats[0])}\nAcc cashflow: {serialize_break_even(break_even_stats[1])}\nCapital: {serialize_break_even(break_even_stats[2])}")
 
     # Labels
     ax1.set_xlabel("Year")
