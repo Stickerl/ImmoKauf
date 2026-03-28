@@ -63,7 +63,6 @@
         "tax_rate": 42
       }
     },
-
     {
       "real_estate": {
         "name": "Immo space: 26G9THKWGDT6",
@@ -73,6 +72,7 @@
         "cold_rent": 990,
         "warm_rent": 1237.5,
         "parking": 0,
+        "parking_price": 0,
         "notes": "warm rent estimated"
       },
       "credit": {
@@ -93,6 +93,92 @@
       },
       "acquisition_costs": {
         "agent": 3.57,
+        "notary": 1.5,
+        "land_registry": 0.5,
+        "property_transfer_tax": 3.5
+      },
+      "deprecations": {
+        "afa_rate": 2.5,
+        "afa_percent": 75,
+        "time_frame": 40
+      },
+      "cashflow": {
+        "tax_rate": 42
+      }
+    },
+    {
+      "real_estate": {
+        "name": "Immo welt: 269BCSQK9ECH",
+        "address": "Augsburg innenstatt",
+        "price": 280000,
+        "living_space": 61.6,
+        "cold_rent": 924,
+        "warm_rent": 1155,
+        "parking": 1,
+        "parking_price": 19000,
+        "notes": "rent estimated"
+      },
+      "credit": {
+        "initial_volume": 199000,
+        "interest": 3.8,
+        "redemption": 2.5
+      },
+      "reserves": {
+        "per_square_meter": 12,
+        "percent_of_rent": 4
+      },
+      "running_costs": {
+        "cottage_deduction_allocatable": 298.98,
+        "cottage_deduction_none_allocatable": 98,
+        "property_tax": 11.8,
+        "weg_reserve": 47.3,
+        "notes": "property_tax and weg_reserve unknown so far, just estimated"
+      },
+      "acquisition_costs": {
+        "agent": 0.0,
+        "notary": 1.5,
+        "land_registry": 0.5,
+        "property_transfer_tax": 3.5
+      },
+      "deprecations": {
+        "afa_rate": 2.5,
+        "afa_percent": 75,
+        "time_frame": 40
+      },
+      "cashflow": {
+        "tax_rate": 42
+      }
+    },
+    {
+      "real_estate": {
+        "name": "Immo scout: 165739787",
+        "address": "Kissing",
+        "price": 154000,
+        "living_space": 25,
+        "cold_rent": 450,
+        "warm_rent": 562.5,
+        "parking": 1,
+        "parking_price": 15000,
+        "notes": "warm rent estimated, parking_price may already be included in price"
+      },
+      "credit": {
+        "initial_volume": 54000,
+        "interest": 3.8,
+        "redemption": 2.5
+      },
+      "reserves": {
+        "per_square_meter": 12,
+        "percent_of_rent": 4
+      },
+      "running_costs": {
+        "cottage_deduction_allocatable": 122.5,
+        "cottage_deduction_none_allocatable": 44.5,
+        "property_tax": 5.2,
+        "weg_reserve": 21.5,
+        "notes": "unknown so far, just estimated"
+      },
+      "acquisition_costs": {
+        "agent": 2.0,
         "notary": 1.5,
         "land_registry": 0.5,
         "property_transfer_tax": 3.5
