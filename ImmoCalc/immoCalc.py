@@ -87,10 +87,10 @@ class AcquisitionCosts:
 
 
 class RealEstate:
-    def __init__(self, name, address, price, expected_rate, living_space, cold_rent, warm_rent, rent_increase, cost_rate, date = datetime.datetime.now(), parking = 0):
+    def __init__(self, name, address, price, expected_rate, living_space, cold_rent, warm_rent, rent_increase, cost_rate, date = datetime.datetime.now(), parking = 0, parking_price = 0):
         self.name = name
         self.address = address
-        self.purchase_price = price
+        self.purchase_price = price + (parking_price if parking > 0 else 0)
         self.purchase_date = date
         self.living_space = living_space  # living space in square meters
         self.initial_cold_rent = cold_rent
@@ -98,6 +98,7 @@ class RealEstate:
         self.annual_rent_increase = rent_increase
         self.annual_cost_increase = cost_rate
         self.parking = parking # number of parking places
+        self.parking_price = parking_price
         self.annual_value_increase_rate = expected_rate
 
     @classmethod
@@ -114,7 +115,8 @@ class RealEstate:
             scenario["rent_increase"],
             scenario["cost_rate"],
             date,
-            cfg.get("parking", 0)
+            cfg.get("parking", 0),
+            cfg.get("parking_price", 0)
         )
 
     def value(self, date_in=None):
@@ -362,7 +364,7 @@ class InvestmentPrediction:
         ax1.plot(years, cashflows, label=f"Cashflow ({label})")
         ax1.plot(years, acc_cashflow, label=f"Accumulated cashflow ({label})")
         ax2.plot(years, capital_growth, linestyle="--", label=f"Capital Growth ({label})")
-        return self.purchase_price_factor, self.cashflow_break_even, self.acc_cashflow_break_even, self.capital_break_even
+        return dict([["Cashflow" , self.cashflow_break_even], ["Acc Cashflow", self.acc_cashflow_break_even], ["Capital", self.capital_break_even]])
 
     def cashflow_prediction(self, end_date=None):
         start_date = self.real_estate.purchase_date
@@ -420,13 +422,13 @@ class CornerCasePrediction:
         self.best_case = InvestmentPrediction(investment_config, scenarios["best"])
         self.scenario_predictions = [[self.worst_case, "worst case"] , [self.expected, "expected"], [self.best_case, "best case"]]
         self.end_date = date_in_years(timeframe)
-        self.evaluation_stats = []
+        self.evaluation_stats = dict()
 
     def plot(self):
         fig, ax1 = plt.subplots()
         ax2 = ax1.twinx()
         for [predictor, name] in self.scenario_predictions:
-            self.evaluation_stats.append(predictor.generate_prediction(ax1, ax2, self.end_date, name))
+            self.evaluation_stats[name] = predictor.generate_prediction(ax1, ax2, self.end_date, name)
 
         # Labels
         ax1.set_xlabel("Year")
@@ -444,47 +446,50 @@ class CornerCasePrediction:
     def get_evaluation_stats(self):
         return self.evaluation_stats
 
+    def get_evaluation_meta_data(self):
+        return dict([["Purchase price", self.expected.real_estate.purchase_price],["Price factor", self.expected.purchase_price_factor]])
 
-def show_break_even_tables(investment_instances):
+
+def show_break_even_tables(investment_instances: list[CornerCasePrediction]):
+    #ToDo: show purchase price
     # Collect scenario names
-    scenario_names = ["worst case", "expected", "best case"]
-    metrics = ["Price factor", "Cashflow", "Acc Cashflow", "Capital"]
-    date_metrics = ["Cashflow", "Acc Cashflow", "Capital"]
-    investment_names = [inv.name for inv in investment_instances]
+    table_data = dict()
+    table_data.setdefault('column names', [])
+    table_data.setdefault('scenarios', dict())
+    for inv in investment_instances:
+        stats = inv.get_evaluation_stats()
+        table_data['column names'].append(inv.name)
+        for scenario_name in stats:
+            table_data['scenarios'].setdefault(scenario_name,dict())
+            for metric_name in stats[scenario_name]:
+                table_data['scenarios'][scenario_name].setdefault(metric_name,[])
+                table_data['scenarios'][scenario_name][metric_name].append(serialize_break_even(stats[scenario_name][metric_name]))
 
-    # Prepare data: each scenario as a dict of lists
-    tables_data = {scenario: [] for scenario in scenario_names}
-    for scenario_index, scenario in enumerate(scenario_names):
-        # For each break-even metric (cashflow, acc_cashflow, capital)
-        scenario_values = []
-        for metric_index, metric_name in enumerate(metrics):
-            # Collect the metric for all investments for this scenario
-            if metric_name in date_metrics:
-                row = [f"{(serialize_break_even(investment.get_evaluation_stats()[scenario_index][metric_index]))}"
-                       for investment in investment_instances]
-            else:
-                row = [f"{(investment.get_evaluation_stats()[scenario_index][metric_index])}"
-                       for investment in investment_instances]
-            scenario_values.append(row)
-        tables_data[scenario] = scenario_values
 
     # Create figure with subplots (1 row per scenario, table per subplot)
-    fig = plt.figure(constrained_layout=True, figsize=(2 + 2*len(investment_names), 2 + 2*len(scenario_names)))
-    spec = gridspec.GridSpec(ncols=1, nrows=len(scenario_names), figure=fig)
+    fig = plt.figure(constrained_layout=True, figsize=(2 + 2*len(table_data['column names']), 2 + 2*len(table_data['column names'])))
+    spec = gridspec.GridSpec(ncols=1, nrows=len(table_data['column names']), figure=fig)
 
-    for i, scenario in enumerate(scenario_names):
+    for i, scenario_name in enumerate(table_data['scenarios']):
+        scenario = table_data['scenarios'][scenario_name]
         ax = fig.add_subplot(spec[i, 0])
         ax.axis('off')  # hide axes
+        row_labels = [row_label for row_label in scenario]
+        row_data = [scenario[metric] for metric in row_labels]
 
         # Build table with metrics as rows, investments as columns
-        table = ax.table(cellText=tables_data[scenario],
-                         rowLabels=metrics,
-                         colLabels=investment_names,
+        table = ax.table(cellText=row_data,
+                         rowLabels=row_labels,
+                         colLabels=table_data['column names'],
                          loc='center')
         table.auto_set_font_size(False)
         table.set_fontsize(10)
         table.scale(1, 2)
-        ax.set_title(f"Break-even statistics: {scenario}", fontweight='bold')
+        ax.set_title(f"Break-even statistics: {scenario_name}", fontweight='bold')
+
+    ax = fig.add_subplot(spec[i, 0])
+    ax.axis('off')
+
 
 
 def main():
