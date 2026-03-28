@@ -448,11 +448,10 @@ class CornerCasePrediction:
         return self.evaluation_stats
 
     def get_evaluation_meta_data(self):
-        return dict([["Purchase price", self.expected.real_estate.purchase_price],["Price factor", self.expected.purchase_price_factor]])
+        return dict([["Purchase price", self.expected.real_estate.purchase_price],["Price factor", self.expected.purchase_price_factor], ["Price per qm", round(self.expected.real_estate.purchase_price/self.expected.real_estate.living_space,2)]])
 
 
 def show_break_even_tables(investment_instances: list[CornerCasePrediction]):
-    #ToDo: show purchase price
     # Collect scenario names
     table_data = dict()
     table_data.setdefault('column names', [])
@@ -472,7 +471,6 @@ def show_break_even_tables(investment_instances: list[CornerCasePrediction]):
             for metric_name in stats[scenario_name]:
                 table_data['scenarios'][scenario_name].setdefault(metric_name,[])
                 table_data['scenarios'][scenario_name][metric_name].append(serialize_break_even(stats[scenario_name][metric_name]))
-
 
     # Create figure with subplots (1 row per scenario, table per subplot)
     fig = plt.figure(constrained_layout=True, figsize=(2 + 2*len(table_data['column names']), 2 + 2*len(table_data['column names'])))
@@ -497,8 +495,12 @@ def show_break_even_tables(investment_instances: list[CornerCasePrediction]):
 
     ax = fig.add_subplot(spec[i+1, 0])
     ax.axis('off')
+    # get the names of meta data and build a matrix in order to be abel to visualize it as matrix
     metric_names = [inv for inv in meta_data['data'][0]]
-    table = ax.table(cellText= numpy.transpose([[inv[metric_names[0]],inv[metric_names[1]]] for i, inv in enumerate(meta_data['data'])]),
+    meta_data_matrix = []
+    for inv in meta_data['data']:
+        meta_data_matrix.append([inv[metric] for metric in metric_names])
+    table = ax.table(cellText= numpy.transpose(meta_data_matrix),
                      rowLabels=metric_names,
                      colLabels=meta_data['names'],
                      loc='center')
@@ -525,7 +527,7 @@ def main():
     for investment in investment_instances:
         investment.plot()
 
-    # ToDo Add capital growth at a specific year and cost per qm
+    # ToDo Add capital growth at a specific year
     show_break_even_tables(investment_instances)
     plt.show()
 
