@@ -17,6 +17,10 @@
         "rent_increase": 3.0,
         "expected_rate": 6.5
       }
+    },
+    "unscheduled_redemption":{
+      "period": 5,
+      "amount": 0
     }
   },
 

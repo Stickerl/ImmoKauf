@@ -15,21 +15,24 @@ def compound_interest(start_value, rate, iterations):
 
 
 class Credit:
-    def __init__(self, initial_volume, interest, redemption, date=datetime.datetime.now()):
+    def __init__(self, initial_volume, interest, redemption, unscheduled_redemption_period, unscheduled_redemption_amount, date=datetime.datetime.now()):
         self.volume = initial_volume
         self.interest_rate = interest
         self.redemption_rate = redemption
         self.annual_credit_rate = 0.0
         self.start_date = date
+        self.unscheduled_redemption_period = unscheduled_redemption_period
+        self.unscheduled_redemption_amount = unscheduled_redemption_amount
         self.calc_rate()
         cnt = 0
         while self.rest_volume(date_in_years(cnt)) > 0:
             cnt += 1
         self.end_date = date_in_years(cnt)
 
+
     @classmethod
-    def from_config(cls, cfg, date):
-        return cls(cfg["initial_volume"], cfg["interest"], cfg["redemption"], date)
+    def from_config(cls, cfg, assumption, date):
+        return cls(cfg["initial_volume"], cfg["interest"], cfg["redemption"], assumption["unscheduled_redemption"]["period"], assumption["unscheduled_redemption"]["amount"], date)
 
     def calc_rate(self):
         self.annual_credit_rate = (self.volume * (self.interest_rate + self.redemption_rate) / 100)
@@ -45,6 +48,10 @@ class Credit:
 
         for i in range(years - 1):
             current_volume = current_volume - (self.annual_credit_rate - current_volume * self.interest_rate / 100)
+            # ToDo check if this is correct!
+            if i % self.unscheduled_redemption_period:
+                current_volume -= self.unscheduled_redemption_amount
+
         return current_volume
 
     def redemption(self, date_in):
@@ -321,11 +328,11 @@ class Returns:
         return f"\nCapital growth in year {date.year} is: {self.capital_growth(date)}\n"
 
 class InvestmentPrediction:
-    def __init__(self, config, scenario):
+    def __init__(self, config, assumptions, scenario):
         now = datetime.datetime.now()
 
         self.real_estate = RealEstate.from_config(config["real_estate"], scenario, now)
-        self.credit = Credit.from_config(config["credit"], now)
+        self.credit = Credit.from_config(config["credit"], assumptions, now)
         self.acquisition_costs = AcquisitionCosts.from_config(
             config["acquisition_costs"],
             self.real_estate.purchase_price
@@ -416,11 +423,11 @@ def serialize_break_even(date):
     return f"{date.year if date else "Break even not reached!"}"
 
 class CornerCasePrediction:
-    def __init__(self, timeframe, investment_config, scenarios):
+    def __init__(self, timeframe, investment_config, assumptions, scenarios):
         self.name = investment_config["real_estate"]["name"]
-        self.worst_case = InvestmentPrediction(investment_config, scenarios["worst"])
-        self.expected = InvestmentPrediction(investment_config, scenarios["expected"])
-        self.best_case = InvestmentPrediction(investment_config, scenarios["best"])
+        self.worst_case = InvestmentPrediction(investment_config, assumptions, scenarios["worst"])
+        self.expected = InvestmentPrediction(investment_config, assumptions, scenarios["expected"])
+        self.best_case = InvestmentPrediction(investment_config, assumptions, scenarios["best"])
         self.scenario_predictions = [[self.worst_case, "worst case"] , [self.expected, "expected"], [self.best_case, "best case"]]
         self.end_date = date_in_years(timeframe)
         self.evaluation_stats = dict()
@@ -522,12 +529,11 @@ def main():
 
     investment_instances =[]
     for investment_cfg in config["investments"]:
-        investment_instances.append(CornerCasePrediction(config["timeframe"], investment_cfg, scenarios))
+        investment_instances.append(CornerCasePrediction(config["timeframe"], investment_cfg, config["assumptions"], scenarios))
 
     for investment in investment_instances:
         investment.plot()
 
-    # ToDo Add capital growth at a specific year
     show_break_even_tables(investment_instances)
     plt.show()
 
