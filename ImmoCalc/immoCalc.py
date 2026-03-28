@@ -493,7 +493,7 @@ def main():
     parser.add_argument("--scenario", choices=["worst", "expected", "best"], default="expected")
     args = parser.parse_args()
 
-    with open(args.config) as f:
+    with open(args.config, "r", encoding="utf-8") as f:
         config = json.load(f)
 
     scenarios = config["assumptions"]["scenarios"]
@@ -505,6 +505,7 @@ def main():
     for investment in investment_instances:
         investment.plot()
 
+    # ToDo Add capital growth at a specific year and cost per qm
     show_break_even_tables(investment_instances)
     plt.show()
 

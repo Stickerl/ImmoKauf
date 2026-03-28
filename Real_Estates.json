@@ -29,7 +29,8 @@
         "living_space": 36.5,
         "cold_rent": 600,
         "warm_rent": 738,
-        "parking": 0
+        "parking": 0,
+        "notes": ""
       },
       "credit": {
         "initial_volume": 94000,
@@ -44,7 +45,8 @@
         "cottage_deduction_allocatable": 131,
         "cottage_deduction_none_allocatable": 167,
         "property_tax": 7,
-        "weg_reserve": 28
+        "weg_reserve": 28,
+        "notes": ""
       },
       "acquisition_costs": {
         "agent": 3.57,
@@ -64,16 +66,17 @@
 
     {
       "real_estate": {
-        "name": "Test Wohnung 2",
-        "address": "Another Street 10",
-        "price": 250000,
-        "living_space": 50,
-        "cold_rent": 800,
-        "warm_rent": 980,
-        "parking": 1
+        "name": "Immo space: 26G9THKWGDT6",
+        "address": "Kissing",
+        "price": 299000,
+        "living_space": 82.6,
+        "cold_rent": 990,
+        "warm_rent": 1237.5,
+        "parking": 0,
+        "notes": "warm rent estimated"
       },
       "credit": {
-        "initial_volume": 150000,
+        "initial_volume": 199000,
         "interest": 3.8,
         "redemption": 2.5
       },
@@ -82,10 +85,11 @@
         "percent_of_rent": 4
       },
       "running_costs": {
-        "cottage_deduction_allocatable": 180,
-        "cottage_deduction_none_allocatable": 220,
-        "property_tax": 10,
-        "weg_reserve": 35
+        "cottage_deduction_allocatable": 269.5,
+        "cottage_deduction_none_allocatable": 377.9,
+        "property_tax": 15.8,
+        "weg_reserve": 63.4,
+        "notes": "unknown so far, just estimated"
       },
       "acquisition_costs": {
         "agent": 3.57,
