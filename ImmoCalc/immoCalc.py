@@ -3,6 +3,7 @@ import json
 import argparse
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+import numpy as numpy
 
 
 def date_in_years(years, date=datetime.datetime.now()):
@@ -456,7 +457,14 @@ def show_break_even_tables(investment_instances: list[CornerCasePrediction]):
     table_data = dict()
     table_data.setdefault('column names', [])
     table_data.setdefault('scenarios', dict())
+    meta_data = dict()
     for inv in investment_instances:
+        # collect meta data for the investment. meta data are case independent performance indicators
+        meta_data.setdefault('data', [])
+        meta_data['data'].append(inv.get_evaluation_meta_data())
+        meta_data.setdefault('names', [])
+        meta_data['names'].append(inv.name)
+        # reorganize data in rows for table visualization
         stats = inv.get_evaluation_stats()
         table_data['column names'].append(inv.name)
         for scenario_name in stats:
@@ -487,10 +495,17 @@ def show_break_even_tables(investment_instances: list[CornerCasePrediction]):
         table.scale(1, 2)
         ax.set_title(f"Break-even statistics: {scenario_name}", fontweight='bold')
 
-    ax = fig.add_subplot(spec[i, 0])
+    ax = fig.add_subplot(spec[i+1, 0])
     ax.axis('off')
-
-
+    metric_names = [inv for inv in meta_data['data'][0]]
+    table = ax.table(cellText= numpy.transpose([[inv[metric_names[0]],inv[metric_names[1]]] for i, inv in enumerate(meta_data['data'])]),
+                     rowLabels=metric_names,
+                     colLabels=meta_data['names'],
+                     loc='center')
+    table.auto_set_font_size(False)
+    table.set_fontsize(10)
+    table.scale(1, 2)
+    ax.set_title("Meta data:", fontweight='bold')
 
 def main():
     parser = argparse.ArgumentParser()
