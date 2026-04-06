@@ -29,12 +29,12 @@
       "real_estate": {
         "name": "Drentwettstraße",
         "address": "Drentwettstraße",
-        "price": 188000,
+        "price": 179000,
         "living_space": 36.5,
         "cold_rent": 600,
         "warm_rent": 738,
         "parking": 0,
-        "notes": ""
+        "notes": "Price reduction 5% (started by 188k€)"
       },
       "credit": {
         "initial_volume": 94000,
@@ -135,8 +135,8 @@
         "cottage_deduction_allocatable": 298.98,
         "cottage_deduction_none_allocatable": 98,
         "property_tax": 11.8,
-        "weg_reserve": 47.3,
-        "notes": "property_tax and weg_reserve unknown so far, just estimated"
+        "weg_reserve": 51.17,
+        "notes": "property_tax unknown so far, just estimated"
       },
       "acquisition_costs": {
         "agent": 0.0,
@@ -156,14 +156,14 @@
     {
       "real_estate": {
         "name": "Immo scout: 165739787",
-        "address": "Kissing",
+        "address": "Kissing-Bahnhofstraße 131a",
         "price": 154000,
         "living_space": 25,
         "cold_rent": 450,
         "warm_rent": 562.5,
         "parking": 1,
         "parking_price": 15000,
-        "notes": "warm rent estimated, parking_price may already be included in price"
+        "notes": "warm rent estimated"
       },
       "credit": {
         "initial_volume": 54000,
@@ -175,11 +175,11 @@
         "percent_of_rent": 4
       },
       "running_costs": {
-        "cottage_deduction_allocatable": 122.5,
-        "cottage_deduction_none_allocatable": 44.5,
+        "cottage_deduction_allocatable": 150,
+        "cottage_deduction_none_allocatable": 103,
         "property_tax": 5.2,
-        "weg_reserve": 21.5,
-        "notes": "unknown so far, just estimated"
+        "weg_reserve": 47.42,
+        "notes": "property tax unknown so far, just estimated"
       },
       "acquisition_costs": {
         "agent": 2.0,
