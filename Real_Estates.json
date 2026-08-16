@@ -1,5 +1,6 @@
 {
   "timeframe":50,
+  "observation_timeframe":20,
   "assumptions": {
     "scenarios": {
       "worst": {
@@ -19,7 +20,7 @@
       }
     },
     "unscheduled_redemption":{
-      "period": 5,
+      "period": 10,
       "amount": 0
     }
   },
@@ -69,7 +70,7 @@
     },
     {
       "real_estate": {
-        "name": "Immo space: 26G9THKWGDT6",
+        "name": "Immo Welt: 26G9THKWGDT6",
         "address": "Kissing",
         "price": 299000,
         "living_space": 82.6,
@@ -77,7 +78,7 @@
         "warm_rent": 1237.5,
         "parking": 0,
         "parking_price": 0,
-        "notes": "warm rent estimated"
+        "notes": "warm rent estimated, https://www.immo-space.com/ff/immobilien/immospace--lichtdurchflutete-renovierte-3-zkb-mit-grossem-wohnbereich-und-tageslichtbad-/estates/61af30f6-977a-40bf-9e9e-d130084ea2f4/"
       },
       "credit": {
         "initial_volume": 199000,
@@ -96,7 +97,7 @@
         "notes": "unknown so far, just estimated"
       },
       "acquisition_costs": {
-        "agent": 3.57,
+        "agent": 2.5,
         "notary": 1.5,
         "land_registry": 0.5,
         "property_transfer_tax": 3.5
@@ -113,14 +114,14 @@
     {
       "real_estate": {
         "name": "Immo welt: 269BCSQK9ECH",
-        "address": "Augsburg innenstatt",
+        "address": "Provinostraße 4",
         "price": 280000,
         "living_space": 61.6,
         "cold_rent": 924,
-        "warm_rent": 1155,
+        "warm_rent": 1224,
         "parking": 1,
         "parking_price": 19000,
-        "notes": "rent estimated"
+        "notes": "rent estimated, https://www.immowelt.de/expose/cbc7dc2c-85b8-4d36-87eb-12e88f4b513f?serp_view=list&search=distributionTypes%3DBuy%2CBuy_Auction%2CCompulsory_Auction%26estateTypes%3DHouse%2CApartment%26locations%3DAD09DE454&sort_order_ab_test=sort_order_reference#ln=classified_search_results&m=classified_search_results_classified_classified_detail_L"
       },
       "credit": {
         "initial_volume": 199000,
@@ -134,9 +135,95 @@
       "running_costs": {
         "cottage_deduction_allocatable": 298.98,
         "cottage_deduction_none_allocatable": 98,
-        "property_tax": 11.8,
+        "property_tax": 12.83,
         "weg_reserve": 51.17,
-        "notes": "property_tax unknown so far, just estimated"
+        "notes": ""
+      },
+      "acquisition_costs": {
+        "agent": 0.0,
+        "notary": 1.5,
+        "land_registry": 0.5,
+        "property_transfer_tax": 3.5
+      },
+      "deprecations": {
+        "afa_rate": 2.5,
+        "afa_percent": 75,
+        "time_frame": 40
+      },
+      "cashflow": {
+        "tax_rate": 42
+      }
+    },
+    {
+      "real_estate": {
+        "name": "Immo welt: 269BCSQK9ECH - low rent",
+        "address": "Provinostraße 4",
+        "price": 280000,
+        "living_space": 61.6,
+        "cold_rent": 918,
+        "warm_rent": 1218,
+        "parking": 1,
+        "parking_price": 19000,
+        "notes": "rent estimated based on mietspiegel worst case + 80€ Tiefgarage + 300€ nebenkosten"
+      },
+      "credit": {
+        "initial_volume": 199000,
+        "interest": 3.8,
+        "redemption": 2.5
+      },
+      "reserves": {
+        "per_square_meter": 12,
+        "percent_of_rent": 4
+      },
+      "running_costs": {
+        "cottage_deduction_allocatable": 298.98,
+        "cottage_deduction_none_allocatable": 98,
+        "property_tax": 12.83,
+        "weg_reserve": 51.17,
+        "notes": ""
+      },
+      "acquisition_costs": {
+        "agent": 0.0,
+        "notary": 1.5,
+        "land_registry": 0.5,
+        "property_transfer_tax": 3.5
+      },
+      "deprecations": {
+        "afa_rate": 2.5,
+        "afa_percent": 75,
+        "time_frame": 40
+      },
+      "cashflow": {
+        "tax_rate": 42
+      }
+    },
+    {
+      "real_estate": {
+        "name": "Immo welt: 269BCSQK9ECH - high rent",
+        "address": "Provinostraße 4",
+        "price": 280000,
+        "living_space": 61.6,
+        "cold_rent": 1015,
+        "warm_rent": 1315,
+        "parking": 1,
+        "parking_price": 19000,
+        "notes": "rent estimated based on mietspiegel best case + 5% + 100€ Tiefgarage + 300€ nebenkosten"
+      },
+      "credit": {
+        "initial_volume": 199000,
+        "interest": 3.8,
+        "redemption": 2.5
+      },
+      "reserves": {
+        "per_square_meter": 12,
+        "percent_of_rent": 4
+      },
+      "running_costs": {
+        "cottage_deduction_allocatable": 298.98,
+        "cottage_deduction_none_allocatable": 98,
+        "property_tax": 12.83,
+        "weg_reserve": 51.17,
+        "notes": ""
       },
       "acquisition_costs": {
         "agent": 0.0,
@@ -183,6 +270,48 @@
       },
       "acquisition_costs": {
         "agent": 2.0,
+        "notary": 1.5,
+        "land_registry": 0.5,
+        "property_transfer_tax": 3.5
+      },
+      "deprecations": {
+        "afa_rate": 2.5,
+        "afa_percent": 75,
+        "time_frame": 40
+      },
+      "cashflow": {
+        "tax_rate": 42
+      }
+    },
+    {
+      "real_estate": {
+        "name": "Schäfflerbachstraße Augsburg",
+        "address": "Schäfflerbachstraße",
+        "price": 239000,
+        "living_space": 59.4,
+        "cold_rent": 600,
+        "warm_rent": 750,
+        "parking": 0,
+        "notes": "warm rent, reserves, running_costs, estimated"
+      },
+      "credit": {
+        "initial_volume": 139000,
+        "interest": 4.3,
+        "redemption": 3.0
+      },
+      "reserves": {
+        "per_square_meter": 10,
+        "percent_of_rent": 3
+      },
+      "running_costs": {
+        "cottage_deduction_allocatable": 85.8,
+        "cottage_deduction_none_allocatable": 109.2,
+        "property_tax": 7,
+        "weg_reserve": 28,
+        "notes": ""
+      },
+      "acquisition_costs": {
+        "agent": 3.57,
         "notary": 1.5,
         "land_registry": 0.5,
         "property_transfer_tax": 3.5
