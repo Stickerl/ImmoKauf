@@ -319,7 +319,7 @@ class Returns:
         acc_cash_flow = self.cash_flow.accumulated_cashflow(self.real_estate.purchase_date, date)
         rest_credit = self.credit.rest_volume(date)
         real_estate_value = self.real_estate.value(date)
-        return real_estate_value - rest_credit - self.get_equity_capital() - acc_cash_flow
+        return real_estate_value - rest_credit - self.get_equity_capital() + acc_cash_flow
 
     def get_equity_capital(self):
         return self.equity_capital
@@ -357,22 +357,26 @@ class InvestmentPrediction:
         self.cashflow_break_even = None
         self.acc_cashflow_break_even = None
         self.capital_break_even = None
+        self.obs_capital = None
+        self.obs_acc_cashflow = None
         self.purchase_price_factor =  round(self.acquisition_costs.purchase_price / (self.real_estate.cold_rent() * 12), 2)
 
     def get_name(self):
         return self.real_estate.name
 
-    def generate_prediction(self, ax1, ax2, end_date, label=""):
+    def generate_prediction(self, ax1, ax2, end_date, observation_date, label=""):
         start_date = self.real_estate.purchase_date
         years = [date_in_years(i, start_date) for i in range(end_date.year - start_date.year)]
         cashflows, self.cashflow_break_even, acc_cashflow, self.acc_cashflow_break_even = self.cashflow_prediction(end_date)
         capital_growth, self.capital_break_even = self.capital_prediction(cashflows, end_date)
+        self.obs_capital = capital_growth[observation_date.year - start_date.year]
+        self.obs_acc_cashflow = sum(cashflows[0:observation_date.year - start_date.year], 0)
 
         # Plot onto provided axes
         ax1.plot(years, cashflows, label=f"Cashflow ({label})")
         ax1.plot(years, acc_cashflow, label=f"Accumulated cashflow ({label})")
         ax2.plot(years, capital_growth, linestyle="--", label=f"Capital Growth ({label})")
-        return dict([["Cashflow" , self.cashflow_break_even], ["Acc Cashflow", self.acc_cashflow_break_even], ["Capital", self.capital_break_even]])
+        return dict([["Cashflow" , self.cashflow_break_even], ["Acc Cashflow", self.acc_cashflow_break_even], ["Capital", self.capital_break_even], [f"Yield capital {observation_date.year} ", round(self.obs_capital, 2)], ["Yield cashflow", round(self.obs_acc_cashflow, 2)]])
 
     def cashflow_prediction(self, end_date=None):
         start_date = self.real_estate.purchase_date
@@ -405,38 +409,42 @@ class InvestmentPrediction:
         start_date = self.real_estate.purchase_date
         if end_date is None:
             end_date = start_date
-        relative_capital_growth = []
-        overall_capital_growth = []
+        capital_growth = []
         break_even_date = None
         for i in range(end_date.year - start_date.year):
             date = date_in_years(i, start_date)
-            relative_capital_growth.append(self.returns.capital_growth(date))
-            overall_capital_growth.append(relative_capital_growth[i] - self.returns.get_equity_capital() + cashflow[i])
-            if break_even_date is None and overall_capital_growth[i] > 0:
+            capital_growth.append(self.returns.capital_growth(date))
+            if break_even_date is None and capital_growth[i] > 0:
                 break_even_date = date
-        return overall_capital_growth, break_even_date
+        return capital_growth, break_even_date
 
     def serialize_stats(self, date_in=None):
         return self.credit.serialize_stats(date_in) + self.real_estate.serialize_stats(date_in) + self.reserves.serialize_stats(date_in) + self.running_costs.serialize_stats(self.reserves, date_in) + self.cashflow.serialize_stats(date_in) + self.returns.serialize_stats(date_in)
 
-def serialize_break_even(date):
-    return f"{date.year if date else "Break even not reached!"}"
+def serialize_metric(date):
+    if date is None:
+        return "Break even not reached!"
+    if type(date) is type(datetime.datetime.now()):
+        return f"{date.year}"
+    return f"{date}"
 
 class CornerCasePrediction:
-    def __init__(self, timeframe, investment_config, assumptions, scenarios):
+    def __init__(self, timeframe, observation_timeframe, investment_config, assumptions, scenarios):
         self.name = investment_config["real_estate"]["name"]
+        self.address = investment_config["real_estate"]["address"]
         self.worst_case = InvestmentPrediction(investment_config, assumptions, scenarios["worst"])
         self.expected = InvestmentPrediction(investment_config, assumptions, scenarios["expected"])
         self.best_case = InvestmentPrediction(investment_config, assumptions, scenarios["best"])
         self.scenario_predictions = [[self.worst_case, "worst case"] , [self.expected, "expected"], [self.best_case, "best case"]]
         self.end_date = date_in_years(timeframe)
+        self.observation_year =date_in_years(observation_timeframe)
         self.evaluation_stats = dict()
 
     def plot(self):
         fig, ax1 = plt.subplots()
         ax2 = ax1.twinx()
         for [predictor, name] in self.scenario_predictions:
-            self.evaluation_stats[name] = predictor.generate_prediction(ax1, ax2, self.end_date, name)
+            self.evaluation_stats[name] = predictor.generate_prediction(ax1, ax2, self.end_date, self.observation_year, name)
 
         # Labels
         ax1.set_xlabel("Year")
@@ -455,7 +463,7 @@ class CornerCasePrediction:
         return self.evaluation_stats
 
     def get_evaluation_meta_data(self):
-        return dict([["Purchase price", self.expected.real_estate.purchase_price],["Price factor", self.expected.purchase_price_factor], ["Price per qm", round(self.expected.real_estate.purchase_price/self.expected.real_estate.living_space,2)]])
+        return dict([["Purchase price", self.expected.real_estate.purchase_price], ["Acquisition cost", self.expected.acquisition_costs.get_total_acquisition_costs()],["Price factor", self.expected.purchase_price_factor], ["Price per qm", round(self.expected.real_estate.purchase_price/self.expected.real_estate.living_space,2)], ["Address", self.address]])
 
 
 def show_break_even_tables(investment_instances: list[CornerCasePrediction]):
@@ -477,10 +485,14 @@ def show_break_even_tables(investment_instances: list[CornerCasePrediction]):
             table_data['scenarios'].setdefault(scenario_name,dict())
             for metric_name in stats[scenario_name]:
                 table_data['scenarios'][scenario_name].setdefault(metric_name,[])
-                table_data['scenarios'][scenario_name][metric_name].append(serialize_break_even(stats[scenario_name][metric_name]))
+                table_data['scenarios'][scenario_name][metric_name].append(serialize_metric(stats[scenario_name][metric_name]))
 
     # Create figure with subplots (1 row per scenario, table per subplot)
-    fig = plt.figure(constrained_layout=True, figsize=(2 + 2*len(table_data['column names']), 2 + 2*len(table_data['column names'])))
+    longest_key = max(len(key) for key in table_data['column names'])
+    column_cnt = len(table_data['column names'])
+    font_size = 8 #ToDo: Doesn't really work as expected
+    #ToDo: rework the plot size as it currently does not make sense at all
+    fig = plt.figure(constrained_layout=True, figsize=(column_cnt*longest_key/font_size, 2*(3+len(table_data['scenarios']))))
     spec = gridspec.GridSpec(ncols=1, nrows=len(table_data['column names']), figure=fig)
 
     for i, scenario_name in enumerate(table_data['scenarios']):
@@ -500,7 +512,7 @@ def show_break_even_tables(investment_instances: list[CornerCasePrediction]):
         table.scale(1, 2)
         ax.set_title(f"Break-even statistics: {scenario_name}", fontweight='bold')
 
-    ax = fig.add_subplot(spec[i+1, 0])
+    ax = fig.add_subplot(spec[len(table_data['scenarios']), 0])
     ax.axis('off')
     # get the names of meta data and build a matrix in order to be abel to visualize it as matrix
     metric_names = [inv for inv in meta_data['data'][0]]
@@ -529,7 +541,7 @@ def main():
 
     investment_instances =[]
     for investment_cfg in config["investments"]:
-        investment_instances.append(CornerCasePrediction(config["timeframe"], investment_cfg, config["assumptions"], scenarios))
+        investment_instances.append(CornerCasePrediction(config["timeframe"], config["observation_timeframe"], investment_cfg, config["assumptions"], scenarios))
 
     for investment in investment_instances:
         investment.plot()

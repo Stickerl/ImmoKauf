@@ -324,6 +324,48 @@
       "cashflow": {
         "tax_rate": 42
       }
+    },
+    {
+      "real_estate": {
+        "name": "Schönbachstraße Augsburg",
+        "address": "Schönbachstraße",
+        "price": 235000,
+        "living_space": 44,
+        "cold_rent": 690,
+        "warm_rent": 940.32,
+        "parking": 0,
+        "notes": "warm rent, reserves, estimated"
+      },
+      "credit": {
+        "initial_volume": 135000,
+        "interest": 4.3,
+        "redemption": 3.0
+      },
+      "reserves": {
+        "per_square_meter": 10,
+        "percent_of_rent": 3
+      },
+      "running_costs": {
+        "cottage_deduction_allocatable": 250.32,
+        "cottage_deduction_none_allocatable": 36.24,
+        "property_tax": 7,
+        "weg_reserve": 13.5,
+        "notes": ""
+      },
+      "acquisition_costs": {
+        "agent": 0,
+        "notary": 1.5,
+        "land_registry": 0.5,
+        "property_transfer_tax": 3.5
+      },
+      "deprecations": {
+        "afa_rate": 2.5,
+        "afa_percent": 75,
+        "time_frame": 40
+      },
+      "cashflow": {
+        "tax_rate": 42
+      }
     }
   ]
 }
