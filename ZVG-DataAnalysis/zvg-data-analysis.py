@@ -79,7 +79,7 @@ class DataGrabber:
         except:
             table = tables[0]
 
-        records = []
+        records = {}
         current = {}
 
         for row in table.find_elements(By.TAG_NAME, "tr"):
@@ -118,18 +118,62 @@ class DataGrabber:
                         current["Amtliche Bekanntmachung"] = cells[1].find_element(By.TAG_NAME, "a").get_attribute("href")
 
                 elif row.find_elements(By.TAG_NAME, "hr"):
-                    records.append(current)
+                    records[current["Aktenzeichen"]] = current
                     current = {}
             except Exception as e:
                 print_exception(e, "parse_page", f"failed at record {len(records)+1}")
         return records
 
+class RecordsFile:
+    def __init__(self, file_path):
+        self.file_path = file_path
+        try:
+            with open(self.file_path, "r", encoding="utf-8") as f:
+                self.records = json.load(f)
+        except FileNotFoundError:
+            self.records = {}
+            self.save()
+
+    def save(self):
+        with open(self.file_path, "w", encoding="utf-8") as f:
+            json.dump(self.records, f, indent=4, ensure_ascii=False)
+
+    def mark_enty(self, object, mark):
+        self.records[object["Aktenzeichen"]]["Mark"] = mark
+        self.save()
+
+    def compare(self, old, new):
+        for trait in old:
+            if trait == "Mark":
+                continue
+            if old[trait] != new[trait]:
+                return "Changed"
+        mark = None
+        try:
+            mark = old["Mark"]
+        except Exception as e:
+            print_exception(e, "RecordsFile.compare", f"entry {old["Aktenzeichen"]} is not marked so far!")
+        return mark
+
+    def check_for_differences(self, other):
+        for entry in self.records:
+            old = other.get(entry)
+            if old:
+                result = self.compare(other.get(entry), self.get(entry))
+                if result:
+                    self.mark_enty(self.get(entry), result)
+
+    def get(self, entry_id):
+        return self.records[entry_id]
+
 def main():
-    data_grabber = DataGrabber()
-    data_grabber.execute_search()
-    records = data_grabber.parse_page()
-    for record in records:
-        continue
+    # data_grabber = DataGrabber()
+    # data_grabber.execute_search()
+    records_file = RecordsFile("records.json")
+    old_file = RecordsFile("old.json")
+    records_file.compare(old_file.get("1540 K 0317/2024 (Detailansicht)"), records_file.get("1540 K 0317/2024 (Detailansicht)"))
+    records_file.check_for_differences(old_file)
+    records_file.save()
 
 
 if __name__ == '__main__':
