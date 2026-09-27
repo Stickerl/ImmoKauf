@@ -136,9 +136,12 @@ class DataGrabber:
 class RecordsFile:
     def __init__(self, file_path):
         self.file_path = file_path
+        self.records = {}
         try:
-            with open(self.file_path, "w", encoding="utf-8") as f:
-                self.records = json.load(f)
+            if os.path.exists(file_path):
+                with open(self.file_path, "r+", encoding="utf-8") as f:
+                    self.records = json.load(f)
+
         except Exception as e:
             print_exception(e, "RecordsFile", "empty file created")
             self.records = {}
@@ -208,15 +211,21 @@ class ZVGExplorer:
         if not self.file_path:
             self.root.destroy()
             return
-
-        if not os.path.exists(self.file_path):
-            if not messagebox.askyesno("Create database", f"The file does not exist:\n{self.file_path}\n\nCreate it?"):
-                self.root.destroy()
-                return
-
         self.records_file = RecordsFile(self.file_path)
         self.update_button = tk.Button(self.root, text="Update database", command=self.on_update_database)
         self.update_button.pack(padx=20, pady=20)
+
+        self.record_index = 0
+        self.record_keys = list(self.records_file.records.keys())
+
+        self.record_text = tk.Text(self.root, width=80, height=20, wrap="word")
+        self.record_text.pack(fill="both", expand=True, padx=10, pady=10)
+
+        button_frame = tk.Frame(self.root)
+        button_frame.pack(pady=5)
+        tk.Button(button_frame, text="Previous", command=self.on_previous_record).pack(side="left", padx=5)
+        tk.Button(button_frame, text="Next", command=self.on_next_record ).pack(side="left", padx=5)
+        self.show_record()
 
     def on_update_database(self):
         data_grabber = DataGrabber()
@@ -230,11 +239,37 @@ class ZVGExplorer:
         self.records_file.save()
         self.temp_records_file.save()
         data_grabber.driver.quit()
+        self.show_record()
 
     def on_close(self):
         if self.temp_file_path and os.path.exists(self.temp_file_path):
             os.remove(self.temp_file_path)
         self.root.destroy()
+
+    def show_record(self):
+        self.record_keys = list(self.records_file.records.keys())
+        self.record_text.delete("1.0", tk.END)
+        if not self.record_keys:
+            self.record_text.insert(tk.END, "No records available.")
+            return
+        key = self.record_keys[self.record_index]
+        record = self.records_file.get(key)
+        self.record_text.insert(tk.END, f"Record {self.record_index + 1} / {len(self.record_keys)}\n\n")
+
+        for field, value in record.items():
+            self.record_text.insert(tk.END, f"{field}: {value}\n")
+
+    def on_previous_record(self):
+        self.record_keys = list(self.records_file.records.keys())
+        if self.record_keys:
+            self.record_index = (self.record_index - 1) % len(self.record_keys)
+            self.show_record()
+
+    def on_next_record(self):
+        self.record_keys = list(self.records_file.records.keys())
+        if self.record_keys:
+            self.record_index = (self.record_index + 1) % len(self.record_keys)
+            self.show_record()
 
     def run(self):
         self.root.mainloop()
