@@ -6,7 +6,8 @@
         "Objekt/Lage": "Eigentumswohnung (1 bis 2 Zimmer): Karpfhamer Straße 10, 94086 Bad Griesbach i. Rottal",
         "Verkehrswert": "65.000,00",
         "Termin": "Freitag, 02. Oktober 2026, 09:30 Uhr",
-        "Amtliche Bekanntmachung": "https://www.zvg-portal.de/index.php?button=showAnhang&land_abk=by&file_id=126694&zvg_id=49112"
+        "Amtliche Bekanntmachung": "https://www.zvg-portal.de/index.php?button=showAnhang&land_abk=by&file_id=126694&zvg_id=49112",
+        "Mark": "Viewed"
     },
     "1540 K 0317/2024 (Detailansicht)": {
         "Aktenzeichen": "1540 K 0317/2024 (Detailansicht)",
@@ -17,23 +18,15 @@
         "Termin": "Montag, 05. Oktober 2026, 13:30 Uhr",
         "Amtliche Bekanntmachung": "https://www.zvg-portal.de/index.php?button=showAnhang&land_abk=by&file_id=126667&zvg_id=49104"
     },
-    "1517 K 0344/2024 (Detailansicht)": {
-        "Aktenzeichen": "1517 K 0344/2024 (Detailansicht)",
-        "url": "https://www.zvg-portal.de/index.php?button=showZvg&zvg_id=49183&land_abk=by",
-        "Amtsgericht": "München in Bayern",
-        "Objekt/Lage": "Eigentumswohnung (1 bis 2 Zimmer): Fritz-Meyer-Weg 55, 81925 München",
-        "Verkehrswert": "204.000,00",
-        "Termin": "Dienstag, 06. Oktober 2026, 10:00 Uhr",
-        "Amtliche Bekanntmachung": "https://www.zvg-portal.de/index.php?button=showAnhang&land_abk=by&file_id=126985&zvg_id=49183"
-    },
     "0010 K 0135/2025 (Detailansicht)": {
         "Aktenzeichen": "0010 K 0135/2025 (Detailansicht)",
         "url": "https://www.zvg-portal.de/index.php?button=showZvg&zvg_id=49109&land_abk=by",
         "Amtsgericht": "Nürnberg in Bayern",
         "Objekt/Lage": "Eigentumswohnung (1 bis 2 Zimmer): Moosbacher Hauptstraße 5, 90537 Feucht, Moosbach",
         "Verkehrswert": "169.000,00 EUR",
-        "Termin": "Mittwoch, 07. Oktober 2026, 10:30 Uhr",
-        "Amtliche Bekanntmachung": "https://www.zvg-portal.de/index.php?button=showAnhang&land_abk=by&file_id=126685&zvg_id=49109"
+        "Termin": "Mittwoch, 07. Oktober 2026, 10:00 Uhr",
+        "Amtliche Bekanntmachung": "https://www.zvg-portal.de/index.php?button=showAnhang&land_abk=by&file_id=126685&zvg_id=49109",
+        "Mark": "Viewed"
     },
     "K 0048/2025 (Detailansicht)": {
         "Aktenzeichen": "K 0048/2025 (Detailansicht)",
@@ -241,5 +234,74 @@
         "Verkehrswert": "31.000,00 €",
         "Termin": "Dienstag, 01. Dezember 2026, 09:00 Uhr",
         "Amtliche Bekanntmachung": "https://www.zvg-portal.de/index.php?button=showAnhang&land_abk=by&file_id=126601&zvg_id=49088"
+    },
+    "1540 K 0321/2024": {
+        "Aktenzeichen": "1540 K 0321/2024",
+        "url": "",
+        "Amtsgericht": "München in Bayern",
+        "Termin": "Der Termin Mittwoch, 21. Oktober 2026, 13:30 Uhr wurde aufgehoben."
+    },
+    "1520 K 0008/2025 (Detailansicht)": {
+        "Aktenzeichen": "1520 K 0008/2025 (Detailansicht)",
+        "url": "https://www.zvg-portal.de/index.php?button=showZvg&zvg_id=49426&land_abk=by",
+        "Amtsgericht": "München in Bayern",
+        "Objekt/Lage": "Eigentumswohnung (1 bis 2 Zimmer): Helene-Mayer-Ring 12, 80809 München (Milbertshofen-Am Hart)",
+        "Verkehrswert": "330.000,00",
+        "Termin": "Montag, 23. November 2026, 10:00 Uhr",
+        "Amtliche Bekanntmachung": "https://www.zvg-portal.de/index.php?button=showAnhang&land_abk=by&file_id=127863&zvg_id=49426"
+    },
+    "0009 K 0188/2024 (Detailansicht)": {
+        "Aktenzeichen": "0009 K 0188/2024 (Detailansicht)",
+        "url": "https://www.zvg-portal.de/index.php?button=showZvg&zvg_id=49369&land_abk=by",
+        "Amtsgericht": "Nürnberg in Bayern",
+        "Objekt/Lage": "Eigentumswohnung (1 bis 2 Zimmer): Peter-Henlein-Straße 19, 90443 Nürnberg",
+        "Verkehrswert": "129.000,00€",
+        "Termin": "Dienstag, 24. November 2026, 10:30 Uhr",
+        "Amtliche Bekanntmachung": "https://www.zvg-portal.de/index.php?button=showAnhang&land_abk=by&file_id=127655&zvg_id=49369"
+    },
+    "1540 K 0232/2024 (Detailansicht)": {
+        "Aktenzeichen": "1540 K 0232/2024 (Detailansicht)",
+        "url": "https://www.zvg-portal.de/index.php?button=showZvg&zvg_id=49373&land_abk=by",
+        "Amtsgericht": "München in Bayern",
+        "Objekt/Lage": "Eigentumswohnung (1 bis 2 Zimmer), Kfz-Stellplatz (Tiefgarage): Karl-Schröder-Straße 7, 82049 Pullach",
+        "Verkehrswert": "1) 500.000,00\n2)   20.000,00",
+        "Termin": "Donnerstag, 26. November 2026, 13:30 Uhr",
+        "Amtliche Bekanntmachung": "https://www.zvg-portal.de/index.php?button=showAnhang&land_abk=by&file_id=127673&zvg_id=49373"
+    },
+    "0002 K 0002/2026 (Detailansicht)": {
+        "Aktenzeichen": "0002 K 0002/2026 (Detailansicht)",
+        "url": "https://www.zvg-portal.de/index.php?button=showZvg&zvg_id=49412&land_abk=by",
+        "Amtsgericht": "Neu-Ulm in Bayern",
+        "Objekt/Lage": "Eigentumswohnung (1 bis 2 Zimmer), mit Abstellraum Nr. 2 im UG: Johann-Strauß-Straße 9, 89231 Neu-Ulm",
+        "Verkehrswert": "90.000,00 €",
+        "Termin": "Mittwoch, 02. Dezember 2026, 10:00 Uhr",
+        "Amtliche Bekanntmachung": "https://www.zvg-portal.de/index.php?button=showAnhang&land_abk=by&file_id=127824&zvg_id=49412"
+    },
+    "1510 K 0249/2024 (Detailansicht)": {
+        "Aktenzeichen": "1510 K 0249/2024 (Detailansicht)",
+        "url": "https://www.zvg-portal.de/index.php?button=showZvg&zvg_id=49416&land_abk=by",
+        "Amtsgericht": "München in Bayern",
+        "Objekt/Lage": "Eigentumswohnung (1 bis 2 Zimmer): Ringstraße 12, 82140 Olching",
+        "Verkehrswert": "230.000,00",
+        "Termin": "Mittwoch, 02. Dezember 2026, 10:00 Uhr",
+        "Amtliche Bekanntmachung": "https://www.zvg-portal.de/index.php?button=showAnhang&land_abk=by&file_id=127836&zvg_id=49416"
+    },
+    "0009 K 0025/2024 (Detailansicht)": {
+        "Aktenzeichen": "0009 K 0025/2024 (Detailansicht)",
+        "url": "https://www.zvg-portal.de/index.php?button=showZvg&zvg_id=49398&land_abk=by",
+        "Amtsgericht": "Nürnberg in Bayern",
+        "Objekt/Lage": "Eigentumswohnung (1 bis 2 Zimmer), Kfz-Stellplatz (Tiefgarage), Denkmalschutz: Fuchsstraße 26, 90429 Nürnberg",
+        "Verkehrswert": "Lfd.Nr. 1  20.000,00€\nLfd.Nr. 2       231.000,00€",
+        "Termin": "Mittwoch, 02. Dezember 2026, 10:30 Uhr",
+        "Amtliche Bekanntmachung": "https://www.zvg-portal.de/index.php?button=showAnhang&land_abk=by&file_id=127769&zvg_id=49398"
+    },
+    "0002 K 0062/2025 (Detailansicht)": {
+        "Aktenzeichen": "0002 K 0062/2025 (Detailansicht)",
+        "url": "https://www.zvg-portal.de/index.php?button=showZvg&zvg_id=49423&land_abk=by",
+        "Amtsgericht": "Neu-Ulm in Bayern",
+        "Objekt/Lage": "Eigentumswohnung (1 bis 2 Zimmer): Krankenhausstraße (Donaucenter) 1, 89231 Neu-Ulm",
+        "Verkehrswert": "180.000,00 €",
+        "Termin": "Mittwoch, 13. Januar 2027, 09:00 Uhr",
+        "Amtliche Bekanntmachung": "https://www.zvg-portal.de/index.php?button=showAnhang&land_abk=by&file_id=127859&zvg_id=49423"
     }
 }

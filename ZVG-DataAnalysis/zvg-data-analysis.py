@@ -212,19 +212,26 @@ class ZVGExplorer:
             self.root.destroy()
             return
         self.records_file = RecordsFile(self.file_path)
-        self.update_button = tk.Button(self.root, text="Update database", command=self.on_update_database)
-        self.update_button.pack(padx=20, pady=20)
+
+        button_frame = tk.Frame(self.root)
+        button_frame.pack(fill="x", padx=20, pady=20)
+        self.update_button = tk.Button(button_frame, text="Update database", command=self.on_update_database)
+        self.update_button.pack(side="left")
+        self.hide_viewed = tk.BooleanVar(value=True)
+        tk.Checkbutton(button_frame, text="Hide Viewed", variable=self.hide_viewed, command=self.on_hide_viewed_changed).pack(side="right")
 
         self.record_index = 0
         self.record_keys = list(self.records_file.records.keys())
-
         self.record_text = tk.Text(self.root, width=80, height=20, wrap="word")
+        self.record_text.bind("<Button-1>", lambda e: self.record_text.focus_set())
         self.record_text.pack(fill="both", expand=True, padx=10, pady=10)
 
         button_frame = tk.Frame(self.root)
         button_frame.pack(pady=5)
-        tk.Button(button_frame, text="Previous", command=self.on_previous_record).pack(side="left", padx=5)
-        tk.Button(button_frame, text="Next", command=self.on_next_record ).pack(side="left", padx=5)
+        button_width = 10
+        tk.Button(button_frame, text="Previous", width=button_width, command=self.on_previous_record).pack(side="left", padx=5)
+        tk.Button(button_frame, text="Viewed", width=button_width, command=self.on_viewed_record).pack(side="left", padx=5)
+        tk.Button(button_frame, text="Next", width=button_width, command=self.on_next_record).pack(side="left", padx=5)
         self.show_record()
 
     def on_update_database(self):
@@ -246,30 +253,69 @@ class ZVGExplorer:
             os.remove(self.temp_file_path)
         self.root.destroy()
 
+    def on_viewed_record(self):
+        if self.record_keys:
+            key = self.record_keys[self.record_index]
+            self.records_file.mark_enty(self.records_file.get(key), mark="Viewed")
+            self.show_record()
+
+    def on_hide_viewed_changed(self):
+        self.record_index = 0
+        self.show_record()
+
     def show_record(self):
         self.record_keys = list(self.records_file.records.keys())
-        self.record_text.delete("1.0", tk.END)
         if not self.record_keys:
+            self.record_text.delete("1.0", tk.END)
             self.record_text.insert(tk.END, "No records available.")
             return
+        if self.hide_viewed.get():
+            for i in range(len(self.record_keys)):
+                index = (self.record_index + i) % len(self.record_keys)
+                key = self.record_keys[index]
+
+                if self.records_file.get(key).get("Mark") != "Viewed":
+                    self.record_index = index
+                    break
+            else:
+                self.record_text.delete("1.0", tk.END)
+                self.record_text.insert(tk.END, "No unviewed records available.")
+                return
         key = self.record_keys[self.record_index]
         record = self.records_file.get(key)
+        self.record_text.config(state="normal")
+        self.record_text.delete("1.0", tk.END)
         self.record_text.insert(tk.END, f"Record {self.record_index + 1} / {len(self.record_keys)}\n\n")
-
         for field, value in record.items():
             self.record_text.insert(tk.END, f"{field}: {value}\n")
 
     def on_previous_record(self):
         self.record_keys = list(self.records_file.records.keys())
-        if self.record_keys:
+        if not self.record_keys:
+            return
+        start_index = self.record_index
+        while True:
             self.record_index = (self.record_index - 1) % len(self.record_keys)
-            self.show_record()
+            key = self.record_keys[self.record_index]
+            if not self.hide_viewed.get() or self.records_file.get(key).get("Mark") != "Viewed":
+                self.show_record()
+                return
+            if self.record_index == start_index:
+                return
 
     def on_next_record(self):
         self.record_keys = list(self.records_file.records.keys())
-        if self.record_keys:
+        if not self.record_keys:
+            return
+        start_index = self.record_index
+        while True:
             self.record_index = (self.record_index + 1) % len(self.record_keys)
-            self.show_record()
+            key = self.record_keys[self.record_index]
+            if not self.hide_viewed.get() or self.records_file.get(key).get("Mark") != "Viewed":
+                self.show_record()
+                return
+            if self.record_index == start_index:
+                return
 
     def run(self):
         self.root.mainloop()
