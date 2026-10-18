@@ -157,7 +157,7 @@
     {
       "real_estate": {
         "name": "Schönbachstraße Augsburg",
-        "address": "Schönbachstraße",
+        "address": "Schönbachstraße 12A",
         "price": 235000,
         "living_space": 44,
         "cold_rent": 690,
@@ -198,33 +198,34 @@
     },
     {
       "real_estate": {
-        "name": "Schönbachstraße Augsburg",
-        "address": "Schönbachstraße - cheaper",
-        "price": 207000,
-        "living_space": 44,
-        "cold_rent": 690,
-        "warm_rent": 940.32,
-        "parking": 0,
-        "notes": "warm rent, reserves, estimated"
+        "name": "Augsburgerstraße 4ZKB",
+        "address": "Augsburgerstraße 19",
+        "price": 279000,
+        "living_space": 86,
+        "cold_rent": 1032,
+        "warm_rent": 1242,
+        "parking": 1,
+        "parking_price": 15000,
+        "notes": "cold rent estimated by AI mean rent value of 12€"
       },
       "credit": {
-        "initial_volume": 135000,
+        "initial_volume": 194000,
         "interest": 4.3,
         "redemption": 3.0
       },
       "reserves": {
         "per_square_meter": 10,
-        "percent_of_rent": 3
+        "percent_of_rent": 4
       },
       "running_costs": {
-        "cottage_deduction_allocatable": 250.32,
-        "cottage_deduction_none_allocatable": 36.24,
+        "cottage_deduction_allocatable": 210,
+        "cottage_deduction_none_allocatable": 30,
         "property_tax": 7,
-        "weg_reserve": 13.5,
-        "notes": ""
+        "weg_reserve": 60,
+        "notes": "overall 240 cottage deduction, both values estimated. WEG currently does not exist but we Simulate it"
       },
       "acquisition_costs": {
-        "agent": 0,
+        "agent": 3.75,
         "notary": 1.5,
         "land_registry": 0.5,
         "property_transfer_tax": 3.5
