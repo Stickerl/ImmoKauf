@@ -181,15 +181,26 @@ class RecordsFile:
         return mark
 
     def check_for_differences(self, other):
+        deleted_entries = []
         for entry in self.records:
-            old = other.get(entry)
-            if old:
+            new = other.get(entry)
+            if new:
                 result = self.compare(other.get(entry), self.get(entry))
                 if result:
                     self.mark_enty(self.get(entry), result)
+            else:
+                # entry seems to be deleted => delete it from the records
+                deleted_entries.append(entry)
+        if deleted_entries:
+            for entry in deleted_entries:
+                del self.records[entry]
+            messagebox.showinfo("Deleted entries", f"The following entries have been deleted:\n\n{', '.join(deleted_entries)}")
 
     def get(self, entry_id):
-        return self.records[entry_id]
+        try:
+            return self.records[entry_id]
+        except:
+            return None
 
     def update(self, data):
         self.records.update(data)
@@ -205,6 +216,7 @@ class ZVGExplorer:
         self.temp_file_path = None
         self.temp_records_file = None
         self.root = tk.Tk()
+        self.root.update_idletasks()  # fix focus issue. Without this the user has to click out of the window and back in to be able to select anything.
         self.root.title("ZVG Explorer")
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
         self.file_path = filedialog.asksaveasfilename(title="Select records database", defaultextension=".json", filetypes=[("JSON files", "*.json"), ("All files", "*.*")])
@@ -223,7 +235,6 @@ class ZVGExplorer:
         self.record_index = 0
         self.record_keys = list(self.records_file.records.keys())
         self.record_text = tk.Text(self.root, width=80, height=20, wrap="word")
-        self.record_text.bind("<Button-1>", lambda e: self.record_text.focus_set())
         self.record_text.pack(fill="both", expand=True, padx=10, pady=10)
 
         button_frame = tk.Frame(self.root)
@@ -269,7 +280,8 @@ class ZVGExplorer:
             self.record_text.delete("1.0", tk.END)
             self.record_text.insert(tk.END, "No records available.")
             return
-        if self.hide_viewed.get():
+        # if self.hide_viewed.get():
+        if True:
             for i in range(len(self.record_keys)):
                 index = (self.record_index + i) % len(self.record_keys)
                 key = self.record_keys[index]
